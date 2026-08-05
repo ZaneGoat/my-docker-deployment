@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Finaliser la commande - Pizzeria{% endblock %}
+
+{% block content %}
+<h1 style="text-align: left;">🛒 Finaliser votre commande</h1>
+
+<div class="checkout-grid" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 3rem; align-items: start;">
+    <div class="card" style="border-left: 8px solid var(--primary-color); padding: 3rem;">
+        <h3 style="color: var(--primary-color); margin-bottom: 2rem; font-size: 1.8rem;">👤 Vos Informations</h3>
+        <form id="checkout-form" method="POST">
+            <input type="hidden" name="cart_data" id="cart-data-input">
+            
+            <div class="form-group">
+                <label for="full_name">Nom complet</label>
+                <input type="text" id="full_name" name="full_name" placeholder="Votre nom et prénom" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Numéro de téléphone</label>
+                <input type="tel" id="phone" name="phone" placeholder="06XXXXXXXX" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Type de commande</label>
+                <select name="order_type" id="order_type" onchange="updateSummary()" required>
+                    <option value="Delivery">🚚 Livraison à domicile</option>
+                    <option value="Pickup">🥡 À emporter (Sur place)</option>
+                </select>
+            </div>
+            
+            <div id="delivery-fields">
+                <div class="form-group">
+                    <label for="address">Adresse de livraison exacte</label>
+                    <input type="text" id="address" name="address" placeholder="Rue, n° de porte, bâtiment...">
+                </div>
+                <div class="form-group">
+                    <label for="neighborhood">Quartier / Secteur</label>
+                    <input type="text" id="neighborhood" name="neighborhood" placeholder="Ex: Gauthier, Maarif...">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Mode de paiement</label>
+                <select name="payment_method" required>
+                    <option value="Cash">💵 Espèces (Cash à la livraison)</option>
+                    <option value="Card">💳 Carte Bancaire (Terminal TPE)</option>
+                </select>
+            </div>
+            
+            <button type="submit" style="width: 100%; margin-top: 1rem; padding: 1.5rem; font-size: 1.2rem;">🚀 CONFIRMER MA COMMANDE</button>
+        </form>
+    </div>
+    
+    <div class="card" style="height: fit-content; background: rgba(0,0,0,0.3); border: 2px solid var(--accent-color);">
+        <h3 style="color: var(--accent-color); margin-bottom: 2rem;">🧾 Résumé</h3>
+        <div id="checkout-summary">
+            <!-- Filled by JS -->
+        </div>
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 2rem 0;">
+        <div style="font-size: 1.2rem;">
+            <p style="display: flex; justify-content: space-between;"><span>Sous-total:</span> <span id="summary-subtotal">0</span> DH</p>
+            <p id="summary-delivery-row" style="display: flex; justify-content: space-between;"><span>Frais de livraison:</span> <span id="summary-delivery">0</span> DH</p>
+            <p style="display: flex; justify-content: space-between; font-size: 2rem; color: var(--primary-color); font-weight: 900; margin-top: 1.5rem;">
+                <span>TOTAL:</span> <span id="summary-total">0</span> DH
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const cart = JSON.parse(localStorage.getItem('pizzeria_cart') || '[]');
+if (cart.length === 0) {
+    window.location.href = '/';
+}
+
+document.getElementById('cart-data-input').value = JSON.stringify(cart);
+
+function updateSummary() {
+    const summaryDiv = document.getElementById('checkout-summary');
+    const orderType = document.getElementById('order_type').value;
+    const deliveryFields = document.getElementById('delivery-fields');
+    
+    if (orderType === 'Pickup') {
+        deliveryFields.style.display = 'none';
+        document.getElementById('address').required = false;
+    } else {
+        deliveryFields.style.display = 'block';
+        document.getElementById('address').required = true;
+    }
+    
+    summaryDiv.innerHTML = '';
+    let subtotal = 0;
+    cart.forEach(item => {
+        const itemTotal = item.price * item.quantity;
+        const p = document.createElement('p');
+        p.style.display = 'flex';
+        p.style.justifyContent = 'space-between';
+        p.style.fontSize = '1.3rem';
+        p.style.marginBottom = '1rem';
+        p.innerHTML = `<span>${item.name} (x${item.quantity})</span> <span>${itemTotal.toFixed(2)} DH</span>`;
+        summaryDiv.appendChild(p);
+        subtotal += itemTotal;
+    });
+    
+    let deliveryFee = (subtotal === 0 || subtotal >= 60 || orderType === 'Pickup') ? 0 : 10;
+    let total = subtotal + deliveryFee;
+    
+    document.getElementById('summary-subtotal').textContent = subtotal.toFixed(2);
+    document.getElementById('summary-total').textContent = total.toFixed(2);
+    
+    const deliveryRow = document.getElementById('summary-delivery-row');
+    if (subtotal === 0) {
+        deliveryRow.style.display = 'none';
+    } else if (deliveryFee === 0 && orderType === 'Delivery') {
+        deliveryRow.style.display = 'flex';
+        deliveryRow.style.color = 'var(--success-color)';
+        deliveryRow.innerHTML = 'Livraison: <strong>GRATUITE</strong> <span id="summary-delivery" style="display:none">0</span>';
+    } else if (orderType === 'Pickup') {
+        deliveryRow.style.display = 'flex';
+        deliveryRow.style.color = 'inherit';
+        deliveryRow.innerHTML = 'Livraison: <strong>N/A</strong> <span id="summary-delivery" style="display:none">0</span>';
+    } else {
+        deliveryRow.style.display = 'flex';
+        deliveryRow.style.color = 'inherit';
+        deliveryRow.innerHTML = `Frais de livraison: <span id="summary-delivery">${deliveryFee.toFixed(2)}</span> DH`;
+    }
+}
+
+updateSummary();
+
+document.getElementById('checkout-form').onsubmit = function() {
+    localStorage.removeItem('pizzeria_cart'); // Clear cart on success
+};
+</script>
+{% endblock %}

@@ -1,0 +1,397 @@
+:root {
+    --primary-color: #ff4d4d;
+    --primary-hover: #ff1a1a;
+    --secondary-color: #2b2d42;
+    --accent-color: #ffb703;
+    --bg-dark: #0d1b2a;
+    --glass-bg: rgba(255, 255, 255, 0.92);
+    --glass-border: rgba(255, 255, 255, 0.3);
+    --text-main: #1b263b;
+    --text-light: #f1faee;
+    --success: #06d6a0;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+* {
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+body {
+    font-family: 'Montserrat', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: url('../img/Backgound.png');
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+    color: var(--text-light);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 10px; }
+
+header {
+    background: rgba(13, 27, 42, 0.5); /* Semi-transparent for legibility */
+    padding: 0.8rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--primary-color);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+/* Floating Cart Button - Bottom Left */
+.floating-cart-btn {
+    position: fixed;
+    bottom: 2rem;
+    left: 2rem;
+    z-index: 1500;
+    background: rgba(255, 77, 77, 0.8);
+    backdrop-filter: blur(10px);
+    border: 2px solid white;
+    padding: 1rem 1.5rem;
+    border-radius: 50px;
+    color: white;
+    text-decoration: none;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.floating-cart-btn:hover {
+    transform: scale(1.1) translateY(-5px);
+    background: var(--primary-color);
+    box-shadow: 0 15px 35px rgba(255, 77, 77, 0.4);
+}
+
+.cart-badge {
+    background: white;
+    color: var(--primary-color);
+    border-radius: 50%;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.9rem;
+    font-weight: 900;
+}
+
+.container {
+    max-width: 1300px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem;
+    min-height: 85vh;
+}
+
+h1, h2, h3 {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+h1 {
+    font-size: 3.5rem;
+    text-align: center;
+    margin: 4rem 0;
+    color: white;
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-shadow: 3px 3px 0px var(--primary-color), 6px 6px 15px rgba(0,0,0,0.7);
+    position: relative;
+}
+
+h1::after {
+    display: block;
+    font-size: 1.5rem;
+    margin-top: 1rem;
+    text-shadow: none;
+    letter-spacing: normal;
+}
+
+/* UI Cards - FULL TRANSPARENT */
+.card, .form-container {
+    background: transparent;
+    color: var(--text-light);
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: none;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--primary-color);
+}
+
+/* Modern Form Inputs */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: var(--primary-color);
+}
+
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-family: inherit;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: 0.3s;
+}
+
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 15px rgba(255, 77, 77, 0.2);
+}
+
+.form-group select option {
+    background: var(--secondary-color);
+    color: white;
+}
+
+/* Custom File Upload Button */
+input[type="file"] {
+    padding: 0.5rem;
+}
+
+input[type="file"]::file-selector-button {
+    background: linear-gradient(45deg, var(--primary-color), #d00000);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-right: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    transition: 0.3s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+input[type="file"]::file-selector-button:hover {
+    filter: brightness(1.2);
+    transform: scale(1.05);
+}
+
+/* Menu Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2.5rem;
+}
+
+.pizza-card {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.pizza-img {
+    width: 115%;
+    height: 220px;
+    object-fit: cover;
+    margin: -2rem -2rem 1.5rem -2rem;
+    border-bottom: 4px solid var(--primary-color);
+}
+
+.pizza-card h3 {
+    margin: 0.5rem 0;
+    font-size: 1.4rem;
+    color: var(--secondary-color);
+}
+
+.pizza-card p {
+    font-size: 0.9rem;
+    color: #4a4e69;
+    flex-grow: 1;
+}
+
+.pizza-card strong {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    display: block;
+    margin: 1rem 0;
+}
+
+/* Buttons */
+button {
+    background: rgba(255, 77, 77, 0.5);
+    color: white;
+    border: 2px solid var(--primary-color);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: 0.3s;
+}
+
+button:hover {
+    background: rgba(255, 77, 77, 0.8);
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(255, 77, 77, 0.4);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* Cart Popup UI */
+#cart-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+#cart {
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    background: rgba(13, 27, 42, 0.95); /* Darker for readability */
+    border: 2px solid var(--primary-color);
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    display: block !important; /* Managed by overlay display */
+    bottom: auto;
+    right: auto;
+}
+
+.close-cart {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: none;
+    padding: 0;
+}
+
+.close-cart:hover {
+    transform: rotate(90deg);
+}
+
+/* Delivery Info Bar */
+.delivery-info {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    background: var(--primary-color);
+    color: white;
+    padding: 1.2rem;
+    border-radius: 50px;
+    margin-bottom: 3rem;
+    font-weight: 700;
+    box-shadow: var(--shadow);
+}
+
+/* Staff Board Overhaul */
+.order-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.column {
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 1.5rem;
+    min-height: 75vh;
+}
+
+.column h2 {
+    font-size: 1.2rem;
+    text-align: center;
+    background: var(--secondary-color);
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.order-card {
+    background: transparent;
+    color: var(--text-light);
+    border-radius: 15px;
+    padding: 1.2rem;
+    margin-bottom: 1.2rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-left: 8px solid;
+}
+
+/* Footer */
+footer {
+    padding: 4rem 0;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.5);
+    margin-top: 5rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 1024px) {
+    .checkout-grid { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 768px) {
+    .order-board { grid-template-columns: 1fr; }
+    #cart { width: 90%; left: 5%; right: 5%; }
+    .nav-links { display: none; } /* Could add hamburger later */
+    .delivery-info { flex-direction: column; gap: 0.5rem; border-radius: 20px; text-align: center; }
+}

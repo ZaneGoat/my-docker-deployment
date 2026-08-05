@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-wrapper fade-in">
+    <div class="card auth-card">
+        <div class="auth-header">
+            <i class="fas fa-user-plus auth-icon"></i>
+            <h2>Rejoindre OthmanRes</h2>
+            <p>Créez votre compte aujourd'hui</p>
+        </div>
+        
+        <form method="POST">
+            <div class="input-group">
+                <label><i class="fas fa-user"></i> Nom d'utilisateur</label>
+                <input type="text" name="username" placeholder="Choisissez un nom d'utilisateur" required>
+            </div>
+            <div class="input-group">
+                <label><i class="fas fa-key"></i> Mot de passe</label>
+                <input type="password" name="password" placeholder="Créez un mot de passe" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-check-circle"></i> Créer un compte
+            </button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Vous avez déjà un compte ? <a href="{{ url_for('auth.login') }}">Connectez-vous ici</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auth-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 70vh;
+    }
+    .auth-card {
+        max-width: 450px;
+        width: 100%;
+        text-align: center;
+    }
+    .auth-header {
+        margin-bottom: 2rem;
+    }
+    .auth-icon {
+        font-size: 3.5rem;
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+        filter: drop-shadow(0 0 10px rgba(246, 194, 62, 0.4));
+    }
+    .auth-header p {
+        color: rgba(255, 255, 255, 0.7);
+    }
+    .input-group {
+        text-align: left;
+        margin-bottom: 1.5rem;
+    }
+    .w-100 {
+        width: 100%;
+    }
+    .auth-footer {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--glass-border);
+    }
+    .auth-footer a {
+        color: var(--accent-color);
+        font-weight: 600;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}

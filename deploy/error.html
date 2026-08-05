@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>// SYSTEM OFFLINE // SIGNAL LOST</title>
+<link rel="icon" href="/signature.png" type="image/png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Fira+Code:wght@400;600;700&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+html,body{height:100%;overflow:hidden;background:#05050a;color:#00ff41;font-family:'Fira Code',monospace;}
+
+/* Vignette & CRT Overlay */
+.vignette{
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,0.85) 100%);
+    pointer-events:none;z-index:2;
+}
+
+body::before{
+    content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+    background:
+        linear-gradient(rgba(255,0,60,0.03) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,0,60,0.03) 1px,transparent 1px);
+    background-size:40px 40px;
+    pointer-events:none;z-index:0;
+}
+
+body::after{
+    content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.2) 2px,rgba(0,0,0,0.2) 4px);
+    pointer-events:none;z-index:3;
+}
+
+/* Container */
+.container{
+    position:relative;z-index:4;
+    height:100%;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    padding:2rem;text-align:center;
+}
+
+/* Cyber Box */
+.error-box{
+    background:rgba(8,8,16,0.92);
+    border:1px solid #ff003c;
+    box-shadow:0 0 35px rgba(255,0,60,0.25), inset 0 0 15px rgba(255,0,60,0.1);
+    clip-path:polygon(25px 0%,100% 0%,calc(100% - 25px) 100%,0% 100%);
+    padding:3rem 3.5rem;width:100%;max-width:650px;
+    position:relative;overflow:hidden;
+}
+
+.error-box::before{
+    content:'';position:absolute;top:0;left:0;width:100%;height:3px;
+    background:linear-gradient(90deg,transparent,#ff003c,transparent);
+    animation:scanLine 2.5s linear infinite;
+}
+@keyframes scanLine{0%{top:-3px}100%{top:100%}}
+
+/* Glitch Title */
+.glitch-title{
+    font-family:'Orbitron',sans-serif;
+    font-size:2.8rem;font-weight:900;
+    color:#ff003c;letter-spacing:4px;
+    text-shadow:2px 0 0 #00ffff, -2px 0 0 #00ff41;
+    margin-bottom:0.5rem;position:relative;
+}
+
+.subtitle{
+    font-size:0.85rem;color:rgba(255,0,60,0.7);
+    letter-spacing:3px;text-transform:uppercase;
+    margin-bottom:1.8rem;
+}
+
+/* Status Panel */
+.hud-status{
+    background:rgba(0,0,0,0.6);
+    border:1px solid rgba(0,255,65,0.2);
+    padding:1rem;margin-bottom:1.8rem;
+    font-size:0.8rem;text-align:left;
+    display:flex;flex-direction:column;gap:0.4rem;
+}
+
+.hud-status .row{display:flex;justify-content:space-between;}
+.hud-status .lbl{color:rgba(0,255,65,0.5);}
+.hud-status .val{color:#00ff41;font-weight:600;}
+.hud-status .val.warn{color:#ff003c;text-shadow:0 0 8px rgba(255,0,60,0.6);}
+
+/* Action Button */
+.btn-retry{
+    display:inline-block;padding:0.9rem 2.2rem;
+    background:linear-gradient(135deg,rgba(0,255,65,0.15),rgba(0,0,0,0.9));
+    border:2px solid #00ff41;color:#00ff41;
+    font-family:'Fira Code',monospace;font-size:0.85rem;
+    font-weight:700;letter-spacing:3px;text-transform:uppercase;
+    text-decoration:none;cursor:pointer;
+    clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+    transition:all 0.25s ease-in-out;
+    box-shadow:0 0 15px rgba(0,255,65,0.25);
+}
+
+.btn-retry:hover{
+    background:#ff003c;color:#000;border-color:#ff003c;
+    box-shadow:0 0 30px rgba(255,0,60,0.7);
+    transform:scale(1.04);
+}
+
+.auto-retry{
+    margin-top:1.2rem;font-size:0.75rem;
+    color:rgba(0,255,65,0.4);letter-spacing:1px;
+}
+.timer{color:#00e5ff;font-weight:bold;}
+
+@media(max-width:600px){
+    .error-box{padding:2rem 1.5rem;clip-path:polygon(15px 0%,100% 0%,calc(100% - 15px) 100%,0% 100%);}
+    .glitch-title{font-size:1.8rem;}
+    .subtitle{font-size:0.7rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="vignette"></div>
+
+<div class="container">
+    <div class="error-box">
+        <div class="glitch-title">502 // OFFLINE</div>
+        <div class="subtitle">SIGNAL LOST — BACKEND DOWN OR REBOOTING</div>
+
+        <div class="hud-status">
+            <div class="row"><span class="lbl">GATEWAY:</span><span class="val">NGINX REVERSE PROXY</span></div>
+            <div class="row"><span class="lbl">TARGET HOST:</span><span class="val warn">UNREACHABLE / RESTARTING</span></div>
+            <div class="row"><span class="lbl">DIAGNOSTIC:</span><span class="val warn">ERR_BACKEND_DISCONNECTED</span></div>
+            <div class="row"><span class="lbl">AUTORECOVERY:</span><span class="val">ACTIVE (DOCKER RESTART POLICY)</span></div>
+        </div>
+
+        <button class="btn-retry" onclick="location.reload()">⚡ RECONNECT SIGNAL</button>
+
+        <div class="auto-retry">AUTOMATIC SIGNAL RECONNECT IN <span class="timer" id="countdown">10</span> SECONDS</div>
+    </div>
+</div>
+
+<script>
+var sec = 10;
+var timerEl = document.getElementById('countdown');
+var interval = setInterval(function(){
+    sec--;
+    if(timerEl) timerEl.textContent = sec;
+    if(sec <= 0){
+        clearInterval(interval);
+        location.reload();
+    }
+}, 1000);
+</script>
+
+</body>
+</html>

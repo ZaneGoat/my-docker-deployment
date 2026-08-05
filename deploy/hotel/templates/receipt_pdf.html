@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: 100mm 150mm;
+            margin: 5mm;
+        }
+        body { font-family: 'Courier New', Courier, monospace; font-size: 10pt; line-height: 1.2; color: #000; }
+        .center { text-align: center; }
+        .header { border-bottom: 1pt dashed #000; padding-bottom: 5mm; margin-bottom: 5mm; }
+        .hotel-name { font-size: 14pt; font-weight: bold; margin-bottom: 2pt; }
+        .title { font-size: 11pt; font-weight: bold; margin: 5pt 0; text-decoration: underline; }
+        .section { margin-bottom: 4mm; }
+        .row { display: block; margin: 2pt 0; }
+        .label { font-weight: bold; display: inline-block; width: 30mm; }
+        .total-box { border-top: 1pt solid #000; margin-top: 5mm; padding-top: 3mm; font-size: 12pt; font-weight: bold; text-align: right; }
+        .footer { margin-top: 10mm; font-size: 8pt; font-style: italic; border-top: 0.5pt dashed #000; padding-top: 2mm; }
+    </style>
+</head>
+<body>
+    <div class="header center">
+        <div class="hotel-name">HOTEL LUXE</div>
+        <div>123 Avenue Mohamed V, Casablanca</div>
+        <div>Tél: +212 5 22 00 00 00</div>
+        <div class="title">REÇU DE PAIEMENT #{{ p.id }}</div>
+    </div>
+
+    <div class="section">
+        <div class="row"><span class="label">Date :</span> {{ p.timestamp.strftime('%d/%m/%Y %H:%M') }}</div>
+        <div class="row"><span class="label">Mode :</span> {{ p.method }}</div>
+    </div>
+
+    <div class="section">
+        <div class="row"><span class="label">Client :</span> {{ p.reservation.client.last_name }} {{ p.reservation.client.first_name }}</div>
+        <div class="row"><span class="label">CIN :</span> {{ p.reservation.client.cin }}</div>
+    </div>
+
+    <div class="section">
+        <div class="row"><span class="label">Chambre :</span> {{ p.reservation.room.number }} ({{ p.reservation.room.type }})</div>
+        <div class="row"><span class="label">Période :</span> {{ p.reservation.arrival_date }} au {{ p.reservation.departure_date }}</div>
+    </div>
+
+    {% if p.reservation.consumed_services %}
+    <div class="section" style="border-top: 0.5pt dashed #ccc; padding-top: 2mm;">
+        <strong>Services liés :</strong><br/>
+        {% for cs in p.reservation.consumed_services %}
+        - {{ cs.service.name }} (x{{ cs.quantity }})<br/>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="total-box">
+        MONTANT REÇU : {{ p.amount }} DH
+    </div>
+
+    <div class="footer center">
+        Merci pour votre confiance.<br/>
+        Conservez ce reçu pour vos archives.
+    </div>
+</body>
+</html>

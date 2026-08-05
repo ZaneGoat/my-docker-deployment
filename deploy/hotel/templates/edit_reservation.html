@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier la Réservation{% endblock %}
+{% block header %}Modifier la Réservation #{{ res.id }}{% endblock %}
+
+{% block content %}
+<div class="form-container" style="max-width: 600px; margin: auto;">
+    <form method="POST">
+        <div class="form-group">
+            <label>Client</label>
+            <select name="client_id" required>
+                {% for client in clients %}
+                <option value="{{ client.id }}" {% if client.id == res.client_id %}selected{% endif %}>
+                    {{ client.last_name }} {{ client.first_name }} ({{ client.cin }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Chambre</label>
+            <select name="room_id" required>
+                {% for room in rooms %}
+                <option value="{{ room.id }}" {% if room.id == res.room_id %}selected{% endif %}>
+                    Chambre {{ room.number }} - {{ room.type }} ({{ room.price_per_night }} DH)
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Date d'arrivée</label>
+            <input type="date" name="arrival_date" value="{{ res.arrival_date }}" required>
+        </div>
+        <div class="form-group">
+            <label>Date de départ</label>
+            <input type="date" name="departure_date" value="{{ res.departure_date }}" required>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="submit" style="flex: 1;">Mettre à jour</button>
+            <a href="{{ url_for('reservations') }}" style="flex: 1; text-align: center; background-color: var(--secondary-color); color: white; padding: 10px; border-radius: 4px; text-decoration: none; font-weight: bold;">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

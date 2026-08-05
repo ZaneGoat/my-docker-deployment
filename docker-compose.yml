@@ -1,0 +1,137 @@
+services:
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:latest
+    restart: always
+    network_mode: "host"
+    volumes:
+      - ./deploy:/var/www/html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+
+  # PHP-FPM for all PHP apps
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile.php
+    restart: always
+    network_mode: "host"
+    volumes:
+      - ./deploy:/var/www/html
+
+  # Flask App 1 (Ihsan)
+  flask1:
+    image: localhost/my-flask-base
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    network_mode: "host"
+    working_dir: /app
+    volumes:
+      - ./deploy/Ihsan:/app
+    command: bash -c "gunicorn -w 4 -b 0.0.0.0:5000 app:app"
+
+  # Flask App 2 (traiteur_evenements)
+  flask2:
+    image: localhost/my-flask-base
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    network_mode: "host"
+    working_dir: /app
+    volumes:
+      - ./deploy/traiteur_evenements:/app
+    command: bash -c "gunicorn -w 4 -b 0.0.0.0:5001 app:app"
+
+  # Flask App 3 (Khadija)
+  flask3:
+    image: localhost/my-flask-base
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    network_mode: "host"
+    working_dir: /app
+    volumes:
+      - ./deploy/khadija/Patisserie:/app
+    command: bash -c "gunicorn -w 4 -b 0.0.0.0:5002 run:app"
+
+  # Flask App 4 (Reservation Terrain)
+  flask4:
+    image: localhost/my-flask-base
+    restart: always
+    network_mode: "host"
+    working_dir: /app
+    volumes:
+      - ./deploy/reservation_terrain:/app
+    command: bash -c "gunicorn -w 4 -b 0.0.0.0:5003 app:app"
+
+  # Centralized MySQL Database
+  mysql:
+    image: mysql:8.0
+    restart: always
+    network_mode: "host"
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: ""
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./deploy/init-dbs.sql:/docker-entrypoint-initdb.d/init-dbs.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Ngrok tunnel to expose to internet
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: always
+    network_mode: "host"
+    environment:
+      - NGROK_AUTHTOKEN=3GZ9PmOUboxT3EtYninw5KqEvhl_4nwzrVY56tz8YyaHUu7Zb
+    command: http 127.0.0.1:80 --log stdout
+
+  # Flask App 6 (PizzaTime)
+  pizzatime:
+    image: localhost/my-flask-base
+    restart: always
+    network_mode: "host"
+    working_dir: /app
+    volumes:
+      - ./deploy/pizzatime:/app
+    command: bash -c "gunicorn -w 4 -b 0.0.0.0:5005 app:app"
+
+  # Flask App 7 (Hotel Management)
+  hotel:
+    image: localhost/my-flask-base
+    restart: always
+    network_mode: "host"
+    working_dir: /app
+    volumes:
+      - ./deploy/hotel:/app
+    command: bash -c "pip install -q xhtml2pdf && gunicorn -w 4 -b 0.0.0.0:5006 app:app"
+
+  # Flask App 8 (Othman Terrain)
+  othman-terrain:
+    image: localhost/my-flask-base
+    restart: always
+    network_mode: "host"
+    working_dir: /app
+    volumes:
+      - ./deploy/othman-terrain:/app
+    command: bash -c "gunicorn -w 4 -b 0.0.0.0:5007 app:app"
+
+  # Django App 5 (IPIRNET)
+  ipirnet:
+    image: python:3.11-slim
+    restart: always
+    network_mode: "host"
+    working_dir: /app
+    volumes:
+      - ./deploy/ipirnet:/app
+    command: sh -c "pip install -r requirements.txt && gunicorn -w 4 -b 0.0.0.0:5004 ipirnet_admin.wsgi:application"
+
+volumes:
+  db_data:

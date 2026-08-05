@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Séjours{% endblock %}
+{% block header %}Gestion des Séjours{% endblock %}
+
+{% block content %}
+<div class="hms-container">
+    
+    <!-- Tab Navigation -->
+    <div class="hms-tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'Arrivals')">
+            <i class="fas fa-plane-arrival"></i> Arrivées <span class="badge">{{ pending|length }}</span>
+        </button>
+        <button class="tab-btn" onclick="openTab(event, 'InStay')">
+            <i class="fas fa-bed"></i> En Séjour <span class="badge">{{ active|length }}</span>
+        </button>
+        <button class="tab-btn" onclick="openTab(event, 'Departures')">
+            <i class="fas fa-history"></i> Historique
+        </button>
+    </div>
+
+    <!-- Tab Content: Arrivals -->
+    <div id="Arrivals" class="tab-content active">
+        <div class="table-container">
+            <table class="hms-table">
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th>Chambre</th>
+                        <th>Type</th>
+                        <th>Arrivée</th>
+                        <th>Nuits</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in pending %}
+                    <tr>
+                        <td>
+                            <div class="client-info">
+                                <span class="name">{{ res.client.last_name }} {{ res.client.first_name }}</span>
+                                <span class="sub">{{ res.client.cin }}</span>
+                            </div>
+                        </td>
+                        <td><span class="room-num">#{{ res.room.number }}</span></td>
+                        <td>{{ res.room.type }}</td>
+                        <td>
+                            <div class="date-info">
+                                <span class="date">{{ res.arrival_date }}</span>
+                                {% if res.arrival_date == today %}
+                                <span class="tag tag-today">Aujourd'hui</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>{{ (res.departure_date - res.arrival_date).days }}</td>
+                        <td>
+                            {% if res.arrival_date <= today %}
+                            <form action="{{ url_for('process_check_in', res_id=res.id) }}" method="POST" style="display: inline;">
+                                <button type="submit" class="btn-checkin">
+                                    <i class="fas fa-check-circle"></i> Check-In
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="tag tag-today" style="background: #e2e8f0; color: #4a5568;">Arrivée le {{ res.arrival_date.strftime('%d/%m/%Y') }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="empty-state">Aucune arrivée en attente.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab Content: In-Stay -->
+    <div id="InStay" class="tab-content">
+        <div class="stays-grid-professional">
+            {% for res in active %}
+            <div class="stay-card {% if res.is_overstay %}overstay{% endif %}">
+                <div class="card-header">
+                    <div class="room-pill">Chambre {{ res.room.number }}</div>
+                    <div class="status-pill">{{ res.status }}</div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="guest-section">
+                        <i class="fas fa-user"></i>
+                        <div class="guest-details">
+                            <span class="name">{{ res.client.last_name }} {{ res.client.first_name }}</span>
+                            <span class="phone">{{ res.client.phone or 'Pas de téléphone' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="stay-progress">
+                        <div class="progress-labels">
+                            <span>{{ res.arrival_date }}</span>
+                            <span>{{ res.departure_date }}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 50%;"></div> <!-- Simplified logic -->
+                        </div>
+                        <div class="nights-count">{{ res.nights }} Nuits</div>
+                    </div>
+
+                    <div class="billing-summary">
+                        <div class="bill-row">
+                            <span>Total Séjour</span>
+                            <span>{{ res.total_amount }} DH</span>
+                        </div>
+                        <div class="bill-row paid">
+                            <span>Payé</span>
+                            <span>{{ res.total_paid }} DH</span>
+                        </div>
+                        <div class="bill-row balance">
+                            <span>Reste à Payer</span>
+                            <strong>{{ res.balance }} DH</strong>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="card-actions">
+                        <button class="action-btn secondary" onclick="toggleServices('services-{{res.id}}')">
+                            <i class="fas fa-concierge-bell"></i> Services
+                        </button>
+                        <button class="action-btn secondary" onclick="togglePayment('payment-{{res.id}}')">
+                            <i class="fas fa-money-bill-wave"></i> Paiement
+                        </button>
+                    </div>
+
+                    <!-- Hidden Forms -->
+                    <div id="services-{{res.id}}" class="hidden-panel">
+                        <form action="{{ url_for('assign_service', res_id=res.id) }}" method="POST">
+                            <select name="service_id" required>
+                                {% for s in services %}
+                                <option value="{{ s.id }}">{{ s.name }} ({{ s.price }} DH)</option>
+                                {% endfor %}
+                            </select>
+                            <input type="number" name="quantity" value="1" min="1">
+                            <button type="submit" class="btn-add">Ajouter</button>
+                        </form>
+                        <ul class="mini-service-list">
+                            {% for cs in res.consumed_services %}
+                            <li>{{ cs.service.name }} x{{ cs.quantity }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div id="payment-{{res.id}}" class="hidden-panel">
+                        <form action="{{ url_for('record_payment', res_id=res.id) }}" method="POST">
+                            <input type="number" step="0.01" name="amount" value="{{ res.balance }}" required style="width: 100px; padding: 5px;">
+                            <select name="method" style="padding: 5px;">
+                                <option value="Espèces">Espèces</option>
+                                <option value="Carte Bancaire">Carte</option>
+                                <option value="Virement">Virement</option>
+                            </select>
+                            <button type="submit" class="btn-pay">Enregistrer</button>
+                        </form>
+
+                        {% if res.payments %}
+                        <div class="card-payment-history" style="margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.18); padding-top: 10px;">
+                            <strong style="font-size: 0.75rem; color: rgba(15, 23, 42, 0.62); text-transform: uppercase;">Historique :</strong>
+                            <div style="margin-top: 8px;">
+                                {% for p in res.payments %}
+                                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.16); padding: 6px 10px; border-radius: 6px; margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.14);">
+                                    <span style="font-size: 0.8rem; font-weight: 600; color: #0f172a;">{{ p.amount }} DH <small style="font-weight: normal; color: rgba(15, 23, 42, 0.58);">({{ p.method }})</small></span>
+                                    <div style="display: flex; gap: 10px;">
+                                        <a href="{{ url_for('print_receipt', p_id=p.id) }}" target="_blank" style="color: var(--accent-color); font-size: 0.8rem;" title="Imprimer"><i class="fas fa-print"></i></a>
+                                        <a href="{{ url_for('delete_payment', p_id=p.id) }}" style="color: var(--danger-color); font-size: 0.8rem;" onclick="return confirm('Supprimer ce paiement ?')" title="Supprimer"><i class="fas fa-trash-alt"></i></a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <form action="{{ url_for('process_check_out', res_id=res.id) }}" method="POST" style="margin-top: 15px;">
+                        <button type="submit" class="btn-checkout" {% if res.balance > 0 %}onclick="return confirm('Attention : Un solde de {{res.balance}} DH est toujours dû. Continuer ?')"{% endif %}>
+                            <i class="fas fa-door-open"></i> Finaliser Check-Out
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <p class="empty-state">Aucun séjour actif pour le moment.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Tab Content: History -->
+    <div id="Departures" class="tab-content">
+        <table class="hms-table">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Chambre</th>
+                    <th>Départ Réel</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in recent_outs %}
+                <tr>
+                    <td>{{ res.client.last_name }} {{ res.client.first_name }}</td>
+                    <td>#{{ res.room.number }}</td>
+                    <td>{{ res.actual_check_out.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>{{ res.total_amount }} DH</td>
+                    <td>
+                        <a href="{{ url_for('download_invoice_pdf', res_id=res.id) }}" class="btn-pdf">
+                            <i class="fas fa-file-pdf"></i> Facture
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .hms-container { padding: 10px; }
+    .hms-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid #eee; }
+    .tab-btn { padding: 12px 25px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; position: relative; }
+    .tab-btn.active { color: var(--accent-color); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: var(--accent-color); }
+    .tab-btn .badge { background: #eee; color: #333; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; margin-left: 5px; }
+    .tab-btn.active .badge { background: var(--accent-color); color: white; }
+    
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Tables */
+    .hms-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+    .hms-table th { padding: 12px; text-align: left; color: #7f8c8d; font-size: 0.85rem; border: none; }
+    .hms-table tr {
+        background: rgba(255, 255, 255, 0.16);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .hms-table td { padding: 15px 12px; }
+    .client-info .name { display: block; font-weight: bold; color: #2c3e50; }
+    .client-info .sub { font-size: 0.75rem; color: #7f8c8d; }
+    .tag-today { background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+    
+    /* Professional Stay Cards */
+    .stays-grid-professional { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .stay-card {
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border-left: 5px solid var(--accent-color);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+    .stay-card.overstay { border-left-color: var(--danger-color); }
+    .card-header {
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.08);
+    }
+    .room-pill {
+        background: rgba(15, 23, 42, 0.82);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+    .card-body { padding: 20px; }
+    .guest-section { display: flex; gap: 12px; align-items: center; margin-bottom: 15px; }
+    .guest-section i { font-size: 1.5rem; color: #bdc3c7; }
+    .guest-details .name { display: block; font-weight: bold; font-size: 1.1rem; }
+    .guest-details .phone { font-size: 0.8rem; color: #7f8c8d; }
+    
+    .stay-progress { margin: 20px 0; }
+    .progress-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: #95a5a6; margin-bottom: 5px; }
+    .progress-bar { height: 6px; background: rgba(255, 255, 255, 0.16); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent-color); }
+    .nights-count { text-align: center; font-size: 0.75rem; margin-top: 5px; color: #7f8c8d; font-weight: bold; }
+
+    .billing-summary {
+        background: rgba(255, 255, 255, 0.16);
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .bill-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin: 4px 0; }
+    .bill-row.paid { color: var(--success-color); }
+    .bill-row.balance {
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        margin-top: 8px;
+        padding-top: 8px;
+        font-size: 0.95rem;
+        color: var(--danger-color);
+    }
+
+    .card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+    .action-btn {
+        padding: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.14);
+        color: #0f172a;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+    .action-btn:hover { background: rgba(255, 255, 255, 0.22); }
+    
+    .btn-checkout { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .hidden-panel {
+        display: none;
+        margin-top: 15px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 6px;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+    
+    .mini-service-list { list-style: none; padding: 0; margin-top: 10px; font-size: 0.75rem; color: #666; }
+</style>
+
+<script>
+function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tab-content");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+        tabcontent[i].classList.remove("active");
+    }
+    tablinks = document.getElementsByClassName("tab-btn");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].classList.remove("active");
+    }
+    
+    const activeTab = document.getElementById(tabName);
+    activeTab.style.display = "block";
+    activeTab.classList.add("active");
+    
+    if (evt) {
+        evt.currentTarget.classList.add("active");
+    } else {
+        // If called without event (initial load), find the button
+        for (i = 0; i < tablinks.length; i++) {
+            if (tablinks[i].getAttribute('onclick').includes(tabName)) {
+                tablinks[i].classList.add("active");
+            }
+        }
+    }
+    
+    // Save state
+    localStorage.setItem('activeStayTab', tabName);
+}
+
+// Restore tab on load
+document.addEventListener('DOMContentLoaded', function() {
+    const savedTab = localStorage.getItem('activeStayTab') || 'Arrivals';
+    openTab(null, savedTab);
+});
+
+function toggleServices(id) {
+    var x = document.getElementById(id);
+    x.style.display = (x.style.display === "block") ? "none" : "block";
+}
+
+function togglePayment(id) {
+    var x = document.getElementById(id);
+    x.style.display = (x.style.display === "block") ? "none" : "block";
+}
+</script>
+{% endblock %}

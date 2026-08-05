@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% macro render_table(order_list, show_actions=False) %}
+<table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+    <thead>
+        <tr style="background: rgba(255,255,255,0.03); color: #888;">
+            <th style="padding: 0.8rem;">ID</th>
+            <th style="padding: 0.8rem;">DATE</th>
+            <th style="padding: 0.8rem;">CLIENT</th>
+            <th style="padding: 0.8rem;">TÉLÉPHONE</th>
+            <th style="padding: 0.8rem;">TYPE</th>
+            <th style="padding: 0.8rem;">TOTAL</th>
+            <th style="padding: 0.8rem;">STATUT</th>
+            {% if show_actions %}<th class="no-print" style="padding: 0.8rem; text-align: center;">ACTIONS</th>{% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in order_list %}
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.02); transition: 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+            <td style="padding: 0.8rem; font-weight: bold;">#{{ order.id }}</td>
+            <td style="padding: 0.8rem; color: #aaa;">{{ order.created_at.strftime('%d/%m %H:%M') }}</td>
+            <td style="padding: 0.8rem; font-weight: 600;">{{ order.client.full_name }}</td>
+            <td style="padding: 0.8rem;">
+                <a href="tel:{{ order.client.phone }}" style="color: var(--accent-color); text-decoration: none; font-weight: bold;">📞 {{ order.client.phone }}</a>
+            </td>
+            <td style="padding: 0.8rem;">{{ 'Livraison' if order.order_type == 'Delivery' else 'Emporter' }}</td>
+            <td style="padding: 0.8rem; color: var(--primary-color); font-weight: 800;">{{ order.total_price }} DH</td>
+            <td style="padding: 0.8rem;">
+                <span style="padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.65rem; font-weight: bold; white-space: nowrap;
+                    {% if order.status == 'New' %} background: #ff9f43; color: white;
+                    {% elif order.status == 'Confirmed' %} background: var(--success); color: white;
+                    {% elif order.status == 'Preparing' %} background: var(--accent-color); color: var(--secondary-color);
+                    {% else %} background: #444; color: white;
+                    {% endif %}">
+                    {{ order.status|upper }}
+                </span>
+            </td>
+            {% if show_actions %}
+            <td class="no-print" style="padding: 0.8rem;">
+                <div style="display: flex; gap: 0.3rem; justify-content: center;">
+                    {% if order.status == 'New' %}
+                    <button onclick="updateStatus({{ order.id }}, 'Confirmed')" style="padding: 0.3rem 0.6rem; font-size: 0.65rem; background: var(--success); border: none;">CONFIRMER</button>
+                    {% elif order.status == 'Confirmed' %}
+                    <button onclick="updateStatus({{ order.id }}, 'Preparing')" style="padding: 0.3rem 0.6rem; font-size: 0.65rem; background: var(--accent-color); color: var(--secondary-color); border: none;">CUISINER</button>
+                    {% endif %}
+                </div>
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}
+
+{% block title %}Gestion des Commandes - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-orders-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="margin: 0;">📦 Gestion des Commandes</h1>
+        <button onclick="window.print()" style="background: var(--secondary-color); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem;">
+            🖨️ IMPRIMER TOUT
+        </button>
+    </div>
+    
+    <div class="no-print" style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 3rem; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 15px;">
+        <button onclick="scrollToSection('new-section')" class="nav-btn" style="border-left: 3px solid #ff9f43;">📞 À CONFIRMER</button>
+        <button onclick="scrollToSection('confirmed-section')" class="nav-btn" style="border-left: 3px solid var(--success);">👨‍🍳 CONFIRMÉES</button>
+        <button onclick="scrollToSection('all-section')" class="nav-btn" style="border-left: 3px solid var(--primary-color);">📋 HISTORIQUE</button>
+    </div>
+
+    <!-- Section: À Confirmer -->
+    <div id="new-section" class="order-section" style="margin-bottom: 4rem;">
+        <h3 style="color: #ff9f43; font-size: 1rem; letter-spacing: 1px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>📞</span> COMMANDES À CONFIRMER
+        </h3>
+        <div class="card" style="padding: 0; overflow: hidden; border-top: 3px solid #ff9f43;">
+            {% set new_list = orders|selectattr('status', 'equalto', 'New')|list %}
+            {% if new_list %}
+                {{ render_table(new_list, show_actions=True) }}
+            {% else %}
+                <p style="padding: 2rem; text-align: center; color: #666; font-size: 0.9rem;">Aucune commande en attente de confirmation.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Section: Confirmées -->
+    <div id="confirmed-section" class="order-section" style="margin-bottom: 4rem;">
+        <h3 style="color: var(--success); font-size: 1rem; letter-spacing: 1px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>👨‍🍳</span> COMMANDES CONFIRMÉES
+        </h3>
+        <div class="card" style="padding: 0; overflow: hidden; border-top: 3px solid var(--success);">
+            {% set confirmed_list = orders|selectattr('status', 'equalto', 'Confirmed')|list %}
+            {% if confirmed_list %}
+                {{ render_table(confirmed_list, show_actions=True) }}
+            {% else %}
+                <p style="padding: 2rem; text-align: center; color: #666; font-size: 0.9rem;">Aucune commande confirmée en attente.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Section: Historique Complet -->
+    <div id="all-section" class="order-section">
+        <h3 style="color: var(--primary-color); font-size: 1rem; letter-spacing: 1px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>📋</span> HISTORIQUE COMPLET
+        </h3>
+        <div class="card" style="padding: 0; overflow: hidden; border-top: 3px solid var(--primary-color);">
+            {{ render_table(orders, show_actions=False) }}
+        </div>
+    </div>
+</div>
+
+<style>
+.nav-btn { background: rgba(255,255,255,0.05); border: none; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; color: white; font-size: 0.75rem; font-weight: bold; transition: 0.3s; }
+.nav-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+
+@media print {
+    body { background: white !important; color: black !important; }
+    .no-print, header, footer, .navbar { display: none !important; }
+    .card { border: 1px solid #ccc !important; box-shadow: none !important; margin-bottom: 2rem !important; }
+    table { color: black !important; width: 100% !important; }
+    th { color: black !important; border-bottom: 2px solid black !important; background: #eee !important; font-size: 0.7rem; }
+    td { border-bottom: 1px solid #eee !important; font-size: 0.7rem; }
+    h1, h3 { color: black !important; text-shadow: none !important; border-color: black !important; }
+    .order-section { page-break-inside: avoid; }
+}
+</style>
+
+<script>
+function updateStatus(orderId, newStatus) {
+    fetch(`/staff/order/${orderId}/update_status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+    }).then(response => {
+        if (response.ok) window.location.reload();
+    });
+}
+
+function scrollToSection(id) {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+{% endblock %}

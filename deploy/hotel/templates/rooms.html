@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Chambres{% endblock %}
+{% block header %}Gestion des Chambres{% endblock %}
+
+{% block content %}
+{% if current_user.role == 'Admin' %}
+<div class="form-container">
+    <h3>Ajouter une Chambre</h3>
+    <form action="{{ url_for('add_room') }}" method="POST">
+        <div class="form-group">
+            <label>Numéro</label>
+            <input type="text" name="number" required>
+        </div>
+        <div class="form-group">
+            <label>Type</label>
+            <select name="type">
+                <option value="Simple">Simple</option>
+                <option value="Double">Double</option>
+                <option value="Suite">Suite</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Prix/Nuit (DH)</label>
+            <input type="number" step="0.01" name="price" required>
+        </div>
+        <div class="form-group">
+            <label>Étage</label>
+            <input type="number" name="floor" required>
+        </div>
+        <button type="submit">Ajouter</button>
+    </form>
+</div>
+{% endif %}
+
+<table>
+    <thead>
+        <tr>
+            <th>Numéro</th>
+            <th>Type</th>
+            <th>Prix/Nuit</th>
+            <th>Étage</th>
+            <th>Statut</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for room in rooms %}
+        <tr>
+            <td>{{ room.number }}</td>
+            <td>{{ room.type }}</td>
+            <td>{{ room.price_per_night }} DH</td>
+            <td>{{ room.floor }}</td>
+            <td>
+                <span class="status-badge status-{{ room.display_status.lower() }}">
+                    {{ room.display_status }}
+                </span>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OthmanRes - Réservation de Terrains Moderne</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
+</head>
+<body>
+    <nav class="btn-print-hide">
+        <div class="logo">
+            <a href="{{ url_for('main.dashboard') }}">
+                <i class="fas fa-futbol"></i> OthmanRes
+            </a>
+        </div>
+        <div class="nav-links">
+            {% if current_user.is_authenticated %}
+                <div class="user-greeting">
+                    <i class="fas fa-user-circle"></i>
+                    <span>{{ current_user.username }} <small>({{ 'Administrateur' if current_user.role == 'admin' else 'Joueur' }})</small></span>
+                </div>
+                <a href="{{ url_for('main.dashboard') }}"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="{{ url_for('main.reservations') }}"><i class="fas fa-clipboard-list"></i> Les Reservation</a>
+                {% if current_user.role == 'admin' %}
+                    <a href="{{ url_for('main.manage_players') }}"><i class="fas fa-users"></i> Joueurs</a>
+                    <a href="{{ url_for('main.admin_settings') }}"><i class="fas fa-cogs"></i> Paramètres</a>
+                {% endif %}
+                <a href="{{ url_for('auth.logout') }}" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt"></i> Connexion</a>
+                <a href="{{ url_for('auth.register') }}" class="btn-register"><i class="fas fa-user-plus"></i> S'inscrire</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="flash fade-in btn-print-hide">
+                  <i class="fas fa-info-circle"></i> {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <style>
+        .user-greeting {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            border: 1px solid var(--glass-border);
+            font-size: 0.9rem;
+            color: #fff;
+        }
+        .user-greeting i {
+            color: var(--accent-color);
+            font-size: 1.1rem;
+        }
+        .btn-logout {
+            background: rgba(231, 74, 59, 0.2) !important;
+            border: 1px solid rgba(231, 74, 59, 0.3) !important;
+        }
+        .btn-logout:hover {
+            background: var(--danger-color) !important;
+            color: white !important;
+        }
+        .btn-register {
+            background: var(--accent-color) !important;
+            color: #333 !important;
+            border: none !important;
+        }
+        .btn-register:hover {
+            background: #fff !important;
+            color: var(--primary-color) !important;
+            transform: translateY(-2px);
+        }
+        @media print {
+            .btn-print-hide {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ccc !important;
+                background: white !important;
+                color: black !important;
+            }
+            h1, h2, h3, label, td, th {
+                color: black !important;
+                text-shadow: none !important;
+            }
+        }
+    </style>
+</body>
+</html>

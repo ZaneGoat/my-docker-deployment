@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header fade-in">
+    <h1><i class="fas fa-cogs"></i> Paramètres Admin</h1>
+    <p>Configuration du système et gestion des administrateurs.</p>
+</div>
+
+<div class="stats-grid fade-in">
+    <div class="card">
+        <h3><i class="fas fa-user-shield"></i> Créer un nouvel Administrateur</h3>
+        <p style="margin-bottom: 1.5rem; color: rgba(255,255,255,0.6);">
+            Créez un compte sécurisé pour un autre administrateur système.
+        </p>
+        <form method="POST">
+            <div class="input-group">
+                <label><i class="fas fa-user-plus"></i> Nom d'utilisateur</label>
+                <input type="text" name="username" placeholder="Entrez le nom d'utilisateur" required>
+            </div>
+            <div class="input-group">
+                <label><i class="fas fa-key"></i> Mot de passe temporaire</label>
+                <input type="password" name="password" placeholder="Entrez un mot de passe sécurisé" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-plus-circle"></i> Créer le compte Admin
+            </button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3><i class="fas fa-list"></i> Administrateurs Actuels</h3>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom d'utilisateur</th>
+                        <th>Rôle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for admin in admins %}
+                    <tr>
+                        <td>
+                            <div class="admin-item">
+                                <i class="fas fa-user-shield"></i>
+                                <strong>{{ admin.username }}</strong>
+                            </div>
+                        </td>
+                        <td><span class="badge">Admin</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .admin-item i {
+        color: var(--accent-color);
+    }
+    .badge {
+        background: rgba(78, 115, 223, 0.2);
+        color: #4e73df;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        border: 1px solid rgba(78, 115, 223, 0.3);
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .w-100 {
+        width: 100%;
+    }
+    .input-group {
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}

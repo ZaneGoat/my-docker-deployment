@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header fade-in">
+    <h1><i class="fas fa-user-circle"></i> Dashboard Joueur</h1>
+    <p>Bienvenue ! Prêt pour votre prochain match ?</p>
+</div>
+
+<!-- My Statistics -->
+<div class="stats-grid fade-in">
+    <div class="card chart-card">
+        <h3><i class="fas fa-chart-pie"></i> Terrains Favoris</h3>
+        <div class="chart-container">
+            <canvas id="myTerrainChart"></canvas>
+        </div>
+    </div>
+    <div class="card chart-card">
+        <h3><i class="fas fa-wallet"></i> Dépenses Mensuelles (MAD)</h3>
+        <div class="chart-container">
+            <canvas id="mySpendingChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="card fade-in">
+    <h2><i class="fas fa-search"></i> Terrains Disponibles</h2>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th><i class="fas fa-map-marker-alt"></i> Nom du Terrain</th>
+                    <th><i class="fas fa-tag"></i> Prix / Heure</th>
+                    <th><i class="fas fa-calendar-check"></i> Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for terrain in terrains %}
+                <tr>
+                    <td><strong>{{ terrain.name }}</strong></td>
+                    <td><span class="price-tag">{{ terrain.price_per_hour }} MAD</span></td>
+                    <td>
+                        <a href="{{ url_for('main.reserve', terrain_id=terrain.id) }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-bolt"></i> Réserver
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card fade-in">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 0;"><i class="fas fa-history"></i> Mes Réservations Récentes</h2>
+        <a href="{{ url_for('main.reservations') }}" class="btn btn-accent btn-sm">
+            <i class="fas fa-arrow-right"></i> Voir tout
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Terrain</th>
+                    <th>Date</th>
+                    <th>Heure</th>
+                    <th>Prix</th>
+                    <th>Paiement</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in reservations %}
+                <tr>
+                    <td>{{ res.terrain.name }}</td>
+                    <td><i class="far fa-calendar-alt"></i> {{ res.date }}</td>
+                    <td><i class="far fa-clock"></i> {{ res.start_time.strftime('%H:%M') }} ({{ res.duration }}h)</td>
+                    <td><strong class="total-price">{{ res.total_price }} MAD</strong></td>
+                    <td>
+                        {% if res.payment_status == 'Paid' %}
+                            <span class="status-paid"><i class="fas fa-check-circle"></i> Payé</span>
+                        {% else %}
+                            <span class="status-pending"><i class="fas fa-clock"></i> En attente (Espèces)</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('main.receipt', res_id=res.id) }}" class="btn btn-accent btn-sm">
+                            <i class="fas fa-file-invoice"></i> Reçu
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    Chart.defaults.color = '#e0e0e0';
+    Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.05)'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    };
+
+    // My Terrain Counts Chart
+    new Chart(document.getElementById('myTerrainChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ stats.terrain_names | tojson }},
+            datasets: [{
+                label: 'Mes Réservations',
+                data: {{ stats.terrain_counts | tojson }},
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                borderRadius: 5
+            }]
+        },
+        options: chartOptions
+    });
+
+    // My Spending Chart
+    new Chart(document.getElementById('mySpendingChart'), {
+        type: 'line',
+        data: {
+            labels: {{ stats.months | tojson }},
+            datasets: [{
+                label: 'Dépenses (MAD)',
+                data: {{ stats.spending | tojson }},
+                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#ff6384'
+            }]
+        },
+        options: chartOptions
+    });
+</script>
+
+<style>
+    .dashboard-header {
+        margin-bottom: 3rem;
+        text-align: center;
+    }
+    .dashboard-header p {
+        color: rgba(255,255,255,0.7);
+        font-size: 1.1rem;
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .chart-card {
+        padding: 1.5rem;
+        min-height: 350px;
+    }
+    .chart-card h3 {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 0.8rem;
+    }
+    .chart-container {
+        position: relative;
+        height: 220px;
+        width: 100%;
+    }
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+    .status-paid {
+        color: #1cc88a;
+        background: rgba(28, 200, 138, 0.1);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(28, 200, 138, 0.2);
+    }
+    .status-pending {
+        color: #f6c23e;
+        background: rgba(246, 194, 62, 0.1);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(246, 194, 62, 0.2);
+    }
+</style>
+{% endblock %}

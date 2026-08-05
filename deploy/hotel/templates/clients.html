@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Clients{% endblock %}
+{% block header %}Gestion des Clients{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h3>Ajouter un Client</h3>
+    <form action="{{ url_for('add_client') }}" method="POST">
+        <div class="form-group">
+            <label>CIN</label>
+            <input type="text" name="cin" required>
+        </div>
+        <div class="form-group">
+            <label>Nom</label>
+            <input type="text" name="last_name" required>
+        </div>
+        <div class="form-group">
+            <label>Prénom</label>
+            <input type="text" name="first_name" required>
+        </div>
+        <div class="form-group">
+            <label>Téléphone</label>
+            <input type="text" name="phone">
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email">
+        </div>
+        <div class="form-group">
+            <label>Adresse</label>
+            <input type="text" name="address">
+        </div>
+        <button type="submit">Ajouter Client</button>
+    </form>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>CIN</th>
+            <th>Nom Complet</th>
+            <th>Téléphone</th>
+            <th>Email</th>
+            <th>Adresse</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for client in clients %}
+        <tr>
+            <td>{{ client.cin }}</td>
+            <td>{{ client.last_name }} {{ client.first_name }}</td>
+            <td>{{ client.phone }}</td>
+            <td>{{ client.email }}</td>
+            <td>{{ client.address }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

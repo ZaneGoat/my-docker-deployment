@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord Staff - Pizzeria{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1 style="text-align: left; margin: 0;">📟 Kitchen Control Center</h1>
+    <div style="display: flex; gap: 1rem;">
+        <button onclick="filterOrders('all')" class="filter-btn active">Tout</button>
+        <button onclick="filterOrders('New')" class="filter-btn">À Confirmer</button>
+        <button onclick="filterOrders('Confirmed')" class="filter-btn">Confirmées</button>
+    </div>
+</div>
+
+<div class="order-board">
+    <!-- Colonne: À Confirmer (Appel requis) -->
+    <div class="column" id="unconfirmed-orders" style="border-top: 5px solid #ff9f43;">
+        <h2 style="background: #ff9f43;">📞 À CONFIRMER (APPEL)</h2>
+        <div class="orders-list">
+            {% for order in orders if order.status == 'New' %}
+            <div class="order-card new" data-status="New" style="border-left-color: #ff9f43;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-weight: 900; font-size: 1.2rem;">#{{ order.id }}</span>
+                    <span style="background: var(--secondary-color); color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem;">{{ order.created_at.strftime('%H:%M') }}</span>
+                </div>
+                <p style="margin: 0.2rem 0;">👤 <strong>{{ order.client.full_name }}</strong></p>
+                <div id="phone-container-{{ order.id }}" style="margin: 0.5rem 0;">
+                    <button onclick="showPhone({{ order.id }}, '{{ order.client.phone }}')" style="padding: 0.3rem 0.6rem; font-size: 0.7rem; background: #444;">Afficher Numéro</button>
+                </div>
+                <p style="margin: 0.2rem 0;">🚚 {{ 'LIVRAISON' if order.order_type == 'Delivery' else 'À EMPORTER' }}</p>
+                <div style="margin-top: 1rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <button onclick="moveOrder({{ order.id }}, 'Confirmed')" style="width: 100%; padding: 0.8rem; font-size: 0.8rem; background: var(--success);">✅ CONFIRMER APPEL</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Colonne: Confirmées / À Préparer -->
+    <div class="column" id="confirmed-orders" style="border-top: 5px solid var(--primary-color);">
+        <h2 style="background: var(--primary-color);">👨‍🍳 CONFIRMÉES / À PRÉPARER</h2>
+        <div class="orders-list">
+            {% for order in orders if order.status == 'Confirmed' %}
+            <div class="order-card confirmed" data-status="Confirmed" style="border-left-color: var(--primary-color);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-weight: 900; font-size: 1.2rem;">#{{ order.id }}</span>
+                    <span style="color: var(--success); font-weight: bold; font-size: 0.7rem;">CONFIRMÉ ✓</span>
+                </div>
+                <p>👤 <strong>{{ order.client.full_name }}</strong></p>
+                <div style="margin-top: 1rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <button onclick="moveOrder({{ order.id }}, 'Preparing')" style="width: 100%; padding: 0.8rem; font-size: 0.8rem;">LANCER EN CUISINE</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Colonne: En préparation -->
+    <div class="column" id="preparing-orders" style="border-top: 5px solid var(--accent-color);">
+        <h2 style="background: var(--accent-color); color: var(--secondary-color);">🔥 EN CUISINE</h2>
+        <div class="orders-list">
+            {% for order in orders if order.status == 'Preparing' %}
+            <div class="order-card preparing" data-status="Preparing" style="border-left-color: var(--accent-color);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-weight: 900; font-size: 1.2rem;">#{{ order.id }}</span>
+                    <span style="color: var(--accent-color); font-weight: bold; animation: pulse 1.5s infinite;">CUISSON...</span>
+                </div>
+                <p>👤 <strong>{{ order.client.full_name }}</strong></p>
+                <div style="margin-top: 1rem; padding-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <button onclick="moveOrder({{ order.id }}, 'Done')" style="width: 100%; padding: 0.8rem; font-size: 0.8rem; background: var(--accent-color); color: var(--secondary-color);">TERMINER</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+.filter-btn {
+    background: #333;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.filter-btn.active {
+    background: var(--primary-color);
+    color: white;
+}
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+</style>
+
+<style>
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}
+</style>
+
+<audio id="alert-sound" src="{{ url_for('static', filename='alert.mp3') }}" preload="auto"></audio>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function moveOrder(orderId, newStatus) {
+    fetch(`/staff/order/${orderId}/update_status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus })
+    }).then(response => {
+        if (response.ok) {
+            window.location.reload();
+        }
+    });
+}
+
+function showPhone(orderId, phone) {
+    const container = document.getElementById(`phone-container-${orderId}`);
+    container.innerHTML = `<a href="tel:${phone}" style="color: var(--accent-color); font-weight: bold; font-size: 1.1rem; text-decoration: none;">📞 ${phone}</a>`;
+}
+
+function filterOrders(status) {
+    // Update buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent.toLowerCase().includes(status.toLowerCase()) || (status === 'all' && btn.textContent === 'Tout')) {
+            btn.classList.add('active');
+        }
+    });
+
+    const columns = ['unconfirmed-orders', 'confirmed-orders', 'preparing-orders'];
+    const statusMap = {
+        'New': 'unconfirmed-orders',
+        'Confirmed': 'confirmed-orders',
+        'Preparing': 'preparing-orders'
+    };
+
+    if (status === 'all') {
+        columns.forEach(id => document.getElementById(id).style.display = 'block');
+    } else {
+        columns.forEach(id => {
+            const col = document.getElementById(id);
+            if (id === statusMap[status]) {
+                col.style.display = 'block';
+            } else {
+                col.style.display = 'none';
+            }
+        });
+    }
+}
+
+// Logic for polling new orders and playing sound could go here
+</script>
+{% endblock %}

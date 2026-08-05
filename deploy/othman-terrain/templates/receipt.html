@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="receipt fade-in">
+    <div class="receipt-header">
+        <h2>OthmanRes</h2>
+        <p>Reçu de Réservation Officiel</p>
+    </div>
+    
+    <div class="receipt-body">
+        <div class="receipt-row">
+            <span>ID Réservation :</span>
+            <strong>#{{ res.id }}</strong>
+        </div>
+        <div class="receipt-row">
+            <span>Joueur :</span>
+            <strong>{{ res.player.username }}</strong>
+        </div>
+        <div class="receipt-row">
+            <span>Terrain :</span>
+            <strong>{{ res.terrain.name }}</strong>
+        </div>
+        <div class="receipt-row">
+            <span>Date :</span>
+            <strong>{{ res.date }}</strong>
+        </div>
+        <div class="receipt-row">
+            <span>Heure de début :</span>
+            <strong>{{ res.start_time.strftime('%H:%M') }}</strong>
+        </div>
+        <div class="receipt-row">
+            <span>Durée :</span>
+            <strong>{{ res.duration }} Heure(s)</strong>
+        </div>
+        <div class="receipt-row">
+            <span>Statut du Paiement :</span>
+            <strong style="color: {{ '#1cc88a' if res.payment_status == 'Paid' else '#f6c23e' }}">
+                {{ 'Payé' if res.payment_status == 'Paid' else 'En attente (Espèces)' }}
+            </strong>
+        </div>
+        
+        <div class="receipt-row total">
+            <span>Total à payer :</span>
+            <strong>{{ res.total_price }} MAD</strong>
+        </div>
+    </div>
+    
+    <div class="receipt-footer">
+        <p>Merci d'avoir choisi OthmanRes !</p>
+        <div class="btn-group btn-print-hide" style="margin-top: 2rem;">
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="fas fa-print"></i> Imprimer le Reçu
+            </button>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-accent">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .receipt {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 3rem;
+        max-width: 600px;
+        margin: 0 auto;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        color: white;
+    }
+    .receipt-header {
+        text-align: center;
+        border-bottom: 2px solid var(--glass-border);
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+    }
+    .receipt-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1.2rem;
+        font-size: 1.1rem;
+    }
+    .total {
+        font-size: 1.5rem;
+        font-weight: 700;
+        border-top: 2px solid var(--glass-border);
+        padding-top: 1.5rem;
+        margin-top: 2rem;
+        color: var(--accent-color);
+    }
+    .receipt-footer {
+        text-align: center;
+        margin-top: 2rem;
+        color: rgba(255,255,255,0.7);
+    }
+    .btn-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+</style>
+{% endblock %}

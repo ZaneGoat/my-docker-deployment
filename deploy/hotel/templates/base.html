@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Hôtel - {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="{% if not current_user.is_authenticated %}login-page{% endif %}">
+    {% if current_user.is_authenticated %}
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-hotel"></i>
+            <span>Hôtel Admin</span>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="{{ url_for('rooms') }}" class="{% if request.endpoint == 'rooms' %}active{% endif %}"><i class="fas fa-bed"></i> Chambres</a></li>
+                <li><a href="{{ url_for('services') }}" class="{% if request.endpoint == 'services' %}active{% endif %}"><i class="fas fa-concierge-bell"></i> Services</a></li>
+                <li><a href="{{ url_for('clients') }}" class="{% if request.endpoint == 'clients' %}active{% endif %}"><i class="fas fa-users"></i> Clients</a></li>
+                <li><a href="{{ url_for('reservations') }}" class="{% if request.endpoint == 'reservations' %}active{% endif %}"><i class="fas fa-calendar-check"></i> Réservations</a></li>
+                <li><a href="{{ url_for('payment_history') }}" class="{% if request.endpoint == 'payment_history' %}active{% endif %}"><i class="fas fa-money-bill-alt"></i> Paiements</a></li>
+                <li><a href="{{ url_for('stay_management') }}" class="{% if request.endpoint == 'stay_management' %}active{% endif %}"><i class="fas fa-concierge-bell"></i> Gestion Séjours</a></li>
+                {% if current_user.role == 'Admin' %}
+                <!-- Add Admin specific links here if needed -->
+                {% endif %}
+            </ul>
+        </nav>
+        <div class="user-info">
+            <span><i class="fas fa-user-circle"></i> {{ current_user.username }}</span>
+            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Quitter</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="main-content {% if not current_user.is_authenticated %}full-width{% endif %}">
+        <header>
+            <h1>{% block header %}{% endblock %}</h1>
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages() %}
+                  {% if messages %}
+                    {% for message in messages %}
+                      <div class="flash">{{ message }}</div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+            </div>
+        </header>
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>

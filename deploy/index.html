@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>// ZANE.DEPLOY v1.0</title>
+<link rel="icon" href="/signature.png" type="image/png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#05050a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/signature.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Fira+Code:wght@300;400;600;700&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;cursor:none!important;}
+
+html,body{height:100%;overflow:hidden;}
+
+body{
+    font-family:'Fira Code',monospace;
+    background:#05050a;
+    color:#ffffff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:1.5rem 2rem;position:relative;cursor:none;zoom:1.5;
+}
+
+#matrixCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+/* vignette */
+.vignette{
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.6) 100%);
+    pointer-events:none;z-index:1;
+}
+
+/* cursor glow cyber reticle */
+.cursor-glow{
+    position:fixed;pointer-events:none;z-index:9999;width:0;height:0;
+}
+.cursor-glow .r{
+    position:fixed;border-radius:50%;border-style:solid;
+    transform:translate(-50%,-50%);pointer-events:none;
+    mix-blend-mode:screen;
+}
+.cursor-glow .r1{width:70px;height:70px;border-width:1.5px;border-color:rgba(0,255,65,0.5);animation:curPulse 1.8s ease-in-out infinite;box-shadow:0 0 15px rgba(0,255,65,0.06),inset 0 0 15px rgba(0,255,65,0.03);}
+.cursor-glow .r2{width:130px;height:130px;border-width:1px;border-color:rgba(0,255,65,0.2);animation:curPulse 1.8s ease-in-out infinite 0.4s;box-shadow:0 0 30px rgba(0,255,65,0.04),inset 0 0 20px rgba(0,255,65,0.02);}
+.cursor-glow .r3{width:220px;height:220px;border-width:0.5px;border-color:rgba(0,255,65,0.08);animation:curPulse 1.8s ease-in-out infinite 0.8s;box-shadow:0 0 50px rgba(0,255,65,0.03);}
+.cursor-glow .r4{width:35px;height:35px;border-width:0.5px;border-color:rgba(0,255,65,0.15);animation:curPulse 1s ease-in-out infinite 0.2s;border-style:dashed;}
+.cursor-glow .dot{position:fixed;width:4px;height:4px;background:#00ff41;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 0 12px #00ff41,0 0 25px rgba(0,255,65,0.15);}
+.cursor-glow .cx{position:fixed;transform:translate(-50%,-50%);pointer-events:none;}
+.cursor-glow .cx::before,.cursor-glow .cx::after{content:'';position:absolute;background:rgba(0,255,65,0.15);border-radius:1px;}
+.cursor-glow .cx::before{width:24px;height:1.5px;top:-0.75px;left:-12px;box-shadow:0 0 6px rgba(0,255,65,0.08);}
+.cursor-glow .cx::after{width:1.5px;height:24px;top:-12px;left:-0.75px;box-shadow:0 0 6px rgba(0,255,65,0.08);}
+
+.cursor-glow .glow-bg{
+    position:fixed;width:120px;height:120px;border-radius:50%;
+    transform:translate(-50%,-50%);pointer-events:none;
+    background:radial-gradient(circle,rgba(0,255,65,0.04),transparent 70%);
+    animation:curPulse 2.5s ease-in-out infinite;
+    mix-blend-mode:screen;
+}
+@keyframes curPulse{0%,100%{opacity:0.4;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}}
+
+.cursor-particle{
+    position:fixed;pointer-events:none;z-index:9998;border-radius:50%;
+    background:#00ff41;animation:cursorTrail 0.6s ease-out forwards;
+}
+@keyframes cursorTrail{
+    0%{opacity:0.5;transform:translate(-50%,-50%) scale(1)}
+    100%{opacity:0;transform:translate(-50%,-50%) scale(0) translateY(-10px)}
+}
+
+/* animated grid */
+body::before{
+    content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+    background:
+        linear-gradient(rgba(0,255,65,0.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(0,255,65,0.025) 1px,transparent 1px);
+    background-size:50px 50px;
+    pointer-events:none;z-index:0;
+    
+}
+@keyframes gridPulse{0%{opacity:0.3}100%{opacity:0.8}}
+
+/* scanlines */
+body::after{
+    content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.12) 2px,rgba(0,0,0,0.03) 4px);
+    pointer-events:none;z-index:2;
+}
+
+/* particles */
+.particles{display:none;}
+.p{position:absolute;border-radius:50%;animation:particleDrift linear infinite;}
+.p.t{background:rgba(0,255,65,0.25);}
+.p.d{background:rgba(0,255,65,0.08);width:3px;height:3px;animation-duration:25s;}
+@keyframes particleDrift{
+    0%{transform:translateY(100vh) translateX(0);opacity:0}
+    8%{opacity:1}
+    92%{opacity:1}
+    100%{transform:translateY(-10vh) translateX(calc(var(--dx)*1px));opacity:0}
+}
+
+/* twinkle stars */
+.star{display:none;}
+@keyframes twinkle{0%{opacity:0.1;transform:scale(0.5)}100%{opacity:0.6;transform:scale(1.2)}}
+
+/* glitch overlay */
+.glitch-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:hidden;opacity:0;transition:opacity 0.1s;}
+.glitch-overlay.active{opacity:1;}
+.glitch-overlay .strip{position:absolute;left:0;width:100%;height:3px;background:rgba(0,255,65,0.2);animation:glitchStrip 0.1s linear infinite;}
+@keyframes glitchStrip{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
+
+/* container */
+.container{
+    position:relative;z-index:3;width:100%;max-width:1100px;
+    display:flex;flex-direction:column;align-items:center;
+    height:100%;justify-content:center;
+}
+
+/* status bar with equalizer */
+.status-bar{display:none;}
+.status-bar::after{
+    content:'';position:absolute;bottom:0;left:0;width:100%;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(0,255,65,0.1),transparent);
+    animation:barSweep 3s ease-in-out infinite;
+}
+@keyframes barSweep{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.stat{display:flex;gap:0.5rem;align-items:center;}
+.stat .val{color:rgba(0,255,65,0.5);font-weight:600;}
+.blink{animation:blink 1.2s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* equalizer bars */
+.eq{display:flex;align-items:center;gap:2px;height:16px;}
+.eq b{display:block;width:2px;background:rgba(0,255,65,0.2);animation:eqBounce var(--d) ease-in-out infinite alternate;}
+@keyframes eqBounce{0%{height:4px}100%{height:var(--h)}}
+
+/* signature */
+.sig-wrapper{position:relative;margin-bottom:0;cursor:crosshair;flex-shrink:0; margin-bottom:1.5rem;}
+.sig-wrapper img{max-height:160px; display:block; filter:drop-shadow(0 0 15px rgba(0,255,65,0.4)); transition:filter 0.5s,transform 0.5s;}
+.sig-wrapper:hover img{
+    filter:drop-shadow(0 0 60px rgba(0,255,65,0.35)) drop-shadow(0 0 100px rgba(0,255,65,0.1));
+    transform:scale(1.03);
+}
+.sig-line{display:none;}
+.sig-line::after{
+    content:'◆';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    color:rgba(0,255,65,0.1);font-size:0.4rem;
+}
+
+/* boot text */
+.boot-line{display:none;}
+.boot-line .cursor{
+    display:inline-block;width:6px;height:0.8em;
+    background:rgba(0,255,65,0.25);margin-left:2px;
+    vertical-align:text-bottom;animation:blink 0.8s step-end infinite;
+}
+
+/* grid */
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:0.8rem;width:100%;max-width:1060px;
+    flex:1;align-content:center;min-height:0;
+}
+
+/* card */
+.card{
+    background:linear-gradient(145deg,rgba(0,255,65,0.025),rgba(0,255,65,0.008));
+    border:1px solid rgba(0,255,65,0.1);
+    clip-path:polygon(20px 0%,100% 0%,calc(100% - 20px) 100%,0% 100%);
+    padding:1rem 1.2rem 1rem 1.5rem;
+    text-align:left;text-decoration:none;color:#c8d0e0;
+    transition:all 0.3s cubic-bezier(0.22,1,0.36,1);
+    position:relative;overflow:hidden;
+ display:flex; justify-content:space-between; align-items:center; padding:0.8rem 1.2rem; min-height:50px;}
+.card::before{
+    content:'';position:absolute;
+    top:0;left:0;width:100%;height:100%;
+    background:linear-gradient(135deg,rgba(0,255,65,0.03),transparent 50%);
+    pointer-events:none;opacity:0;transition:opacity 0.1s;
+}
+.card:hover::before{opacity:1;}
+.card::after{
+    content:'';position:absolute;
+    top:-100%;left:0;width:100%;height:3px;
+    background:linear-gradient(90deg,transparent,rgba(0,255,65,0.12),transparent);
+    animation:scanLine 5s linear infinite;
+    pointer-events:none;
+}
+.card:nth-child(2)::after{animation-delay:0.6s;}
+.card:nth-child(3)::after{animation-delay:1.2s;}
+.card:nth-child(4)::after{animation-delay:1.8s;}
+.card:nth-child(5)::after{animation-delay:2.4s;}
+.card:nth-child(6)::after{animation-delay:3s;}
+.card:nth-child(7)::after{animation-delay:3.6s;}
+.card:nth-child(8)::after{animation-delay:4.2s;}
+.card:nth-child(9)::after{animation-delay:4.8s;}
+@keyframes scanLine{0%{top:-3px}100%{top:100%}}
+
+.card .glow-ring{
+    position:absolute;top:-2px;left:-2px;width:calc(100% + 4px);height:calc(100% + 4px);
+    border:1px solid rgba(0,255,65,0);border-radius:inherit;
+    clip-path:polygon(20px 0%,100% 0%,calc(100% - 20px) 100%,0% 100%);
+    pointer-events:none;transition:all 0.3s;opacity:0;
+}
+.card:hover .glow-ring{
+    border-color:rgba(0,255,65,0.15);
+    box-shadow:0 0 15px rgba(0,255,65,0.1);
+    opacity:1;
+}
+
+.card:hover{
+    border-color:rgba(0,255,65,0.2);
+    background:rgba(0,255,65,0.035);
+    transform:translateY(-2px) scale(1.01);
+}
+.card:hover::after{animation-duration:0.6s;}
+
+.card .tag{display:none;}
+.card h2{font-size:1.1rem; font-weight:700; color:#ffffff; margin-bottom:0; position:relative; z-index:1; font-family:"Fira Code",monospace;}
+.card p{display:none;}
+.card .arrow{position:static; color:rgba(0,255,65,0.5); font-size:1.2rem; transition:all 0.3s; font-family:"Fira Code",monospace;}
+.card:hover .arrow{color:rgba(0,255,65,0.45);right:0.5rem;}
+
+.card .data-dots{display:none;}
+.card:hover .data-dots{opacity:1;}
+.card .data-dots span{width:3px;height:3px;border-radius:50%;background:rgba(0,255,65,0.12);animation:dotPulse 1.5s ease-in-out infinite;}
+.card .data-dots span:nth-child(2){animation-delay:0.3s;}
+.card .data-dots span:nth-child(3){animation-delay:0.6s;}
+@keyframes dotPulse{0%,100%{opacity:0.2;transform:scale(1)}50%{opacity:0.6;transform:scale(1.5)}}
+
+/* hide injected FAB on portal */
+#gfab,.fab-menu-fixed{display:none!important;}
+
+/* corner accents */
+.card .corner{position:absolute;width:8px;height:8px;border-color:rgba(0,255,65,0.06);border-style:solid;transition:border-color 0.3s,width 0.3s,height 0.3s;z-index:1;}
+.card:hover .corner{border-color:rgba(0,255,65,0.25);width:12px;height:12px;}
+.corner-tl{top:1px;left:1px;border-width:1px 0 0 1px;}
+.corner-tr{top:1px;right:1px;border-width:1px 1px 0 0;}
+.corner-bl{bottom:1px;left:1px;border-width:0 0 1px 1px;}
+.corner-br{bottom:1px;right:1px;border-width:0 1px 1px 0;}
+
+/* ipirnet special */
+.card.ipirnet{
+    grid-column:1/-1;
+    border-color:rgba(255,200,50,0.08);
+    background:linear-gradient(145deg,rgba(255,200,50,0.025),rgba(255,200,50,0.008));
+    clip-path:polygon(30px 0%,100% 0%,calc(100% - 30px) 100%,0% 100%);
+    position:relative;
+}
+.card.ipirnet::after{background:linear-gradient(90deg,transparent,rgba(255,200,50,0.15),transparent);}
+.card.ipirnet:hover::after{animation-duration:0.6s;}
+.card.ipirnet .tag{color:rgba(255,200,50,0.5);border-color:rgba(255,200,50,0.15);}
+.card.ipirnet h2{font-size:1.3rem;color:#ffc832;font-family:'Orbitron',monospace;letter-spacing:5px;}
+.card.ipirnet:hover{border-color:rgba(255,200,50,0.18);box-shadow:0 0 30px rgba(255,200,50,0.04);}
+.card.ipirnet .corner{border-color:rgba(255,200,50,0.08);}
+.card.ipirnet:hover .corner{border-color:rgba(255,200,50,0.25);}
+.card.ipirnet .glow-ring{display:none;}
+.card.ipirnet:hover .data-dots span{background:rgba(255,200,50,0.15);}
+.card.ipirnet .gold-pulse{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    border:1px solid rgba(255,200,50,0.03);pointer-events:none;
+    clip-path:polygon(30px 0%,100% 0%,calc(100% - 30px) 100%,0% 100%);
+    animation:goldPulse 3s ease-in-out infinite;
+}
+@keyframes goldPulse{0%,100%{border-color:rgba(255,200,50,0.03);box-shadow:0 0 10px rgba(255,200,50,0);}50%{border-color:rgba(255,200,50,0.08);box-shadow:0 0 20px rgba(255,200,50,0.02);}}
+
+/* add btn */
+.add-btn{margin-top:2rem; padding:0.8rem 2.5rem; background:linear-gradient(135deg, rgba(0,255,65,0.8), #00ff41); color:#05050a; font-family:"Fira Code",monospace; font-size:0.9rem; font-weight:700; letter-spacing:3px; cursor:pointer; border:none; transition:all 0.3s cubic-bezier(0.22,1,0.36,1); text-transform:uppercase; clip-path:polygon(15px 0%,100% 0%,calc(100% - 15px) 100%,0% 100%); box-shadow:0 0 15px rgba(0,255,65,0.3); position:relative; overflow:hidden;}
+.add-btn::before{content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent); transition:left 0.5s; display:block;}
+.add-btn:hover::before{left:100%;}
+.add-btn:hover{background:linear-gradient(135deg, #00ff41, #00ff41); transform:scale(1.03) translateY(-2px); box-shadow:0 0 25px rgba(0,255,65,0.6);}
+
+/* modal */
+.modal-overlay{
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    background:rgba(2,2,8,0.92);
+    display:none;align-items:center;justify-content:center;
+    z-index:1000;opacity:0;transition:opacity 0.3s;
+}
+.modal-overlay.show{opacity:1;}
+.modal{
+    background:#080810;
+    border:1px solid rgba(0,255,65,0.1);padding:2rem 2.5rem;
+    width:100%;max-width:400px;
+    transform:translateY(15px);opacity:0;
+    transition:all 0.35s cubic-bezier(0.22,1,0.36,1);
+    clip-path:polygon(30px 0%,100% 0%,calc(100% - 30px) 100%,0% 100%);
+}
+.modal-overlay.show .modal{transform:translateY(0);opacity:1;}
+.modal h3{
+    font-family:'Orbitron',monospace;font-size:0.75rem;
+    letter-spacing:4px;color:rgba(0,255,65,0.45);
+    margin-bottom:1.2rem;text-align:center;
+}
+.modal input{
+    width:100%;padding:0.7rem 1rem;margin-bottom:0.7rem;
+    background:rgba(0,0,0,0.3);
+    border:1px solid rgba(0,255,65,0.06);outline:none;
+    color:#b0b8c8;font-family:'Fira Code',monospace;
+    font-size:0.75rem;box-sizing:border-box;
+    transition:border-color 0.3s;
+}
+.modal input:focus{border-color:rgba(0,255,65,0.18);}
+.modal-buttons{display:flex;gap:0.6rem;margin-top:1.2rem;}
+.modal-buttons button{
+    flex:1;padding:0.6rem;border:none;
+    font-family:'Fira Code',monospace;font-size:0.7rem;
+    cursor:pointer;transition:all 0.2s;letter-spacing:2px;
+}
+.cancel-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);color:rgba(176,184,200,0.3);}
+.cancel-btn:hover{border-color:rgba(255,255,255,0.12);color:rgba(176,184,200,0.45);}
+.save-btn{background:rgba(0,255,65,0.05);border:1px solid rgba(0,255,65,0.12);color:rgba(0,255,65,0.45);}
+.save-btn:hover{background:rgba(0,255,65,0.08);border-color:rgba(0,255,65,0.2);color:#00ff41;}
+
+/* FAB */
+.fab{
+    position:fixed;bottom:2rem;left:2rem;
+    height:50px;padding:0 1.5rem;
+    background:rgba(5,5,10,0.95);
+    border:1px solid rgba(0,255,65,0.1);
+    color:rgba(0,255,65,0.35);font-size:0.75rem;
+    cursor:pointer;z-index:999;
+    display:flex;align-items:center;gap:0.6rem;
+    transition:all 0.25s;
+    font-family:'Fira Code',monospace;letter-spacing:1px;
+}
+@media(max-width:768px){
+    body{zoom:1 !important; padding:1rem;}
+    .fab{bottom:1rem;left:1rem;height:44px;padding:0 1rem;font-size:0.7rem;}
+}
+.fab .prompt{color:rgba(0,255,65,0.12);}
+.fab .prompt-cursor{display:inline-block;width:5px;height:0.8em;background:rgba(0,255,65,0.15);animation:blink 1s step-end infinite;}
+.fab:hover{border-color:rgba(0,255,65,0.18);color:rgba(0,255,65,0.45);}
+.fab.open{border-color:rgba(0,255,65,0.18);}
+
+.fab-menu{
+    position:fixed;bottom:5.8rem;left:2rem;
+    display:none;flex-direction:column;gap:2px;
+    z-index:998;min-width:200px;
+}
+@media(max-width:768px){
+    body{zoom:1 !important; padding:1rem;}.fab-menu{bottom:5rem;left:1rem;min-width:160px;}}
+.fab-menu.open{display:flex;}
+
+.fab-item{
+    background:rgba(5,5,10,0.97);
+    border:1px solid rgba(0,255,65,0.04);
+    padding:0.6rem 1.2rem;color:rgba(200,208,224,0.35);
+    text-decoration:none;font-size:0.75rem;
+    font-family:'Fira Code',monospace;letter-spacing:1px;
+    transition:all 0.15s;position:relative;
+    animation:fabSlide 0.15s ease-out backwards;
+}
+.fab-item:hover{border-color:rgba(0,255,65,0.1);color:rgba(0,255,65,0.45);padding-left:1.4rem;}
+@keyframes fabSlide{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+
+@keyframes cardAppear{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.new-card{animation:cardAppear 0.4s ease-out forwards;}
+
+@media(max-width:768px){
+    *{cursor:auto!important;}
+    .cursor-glow, .cursor-particle{display:none!important;}
+    body{zoom:1 !important; padding:1rem;}
+    .grid{grid-template-columns:1fr;gap:0.5rem;}
+    .card{clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%); display:flex; justify-content:space-between; align-items:center; padding:0.6rem 1rem; min-height:45px;}
+    .card .tag{display:none;}
+    .card h2{font-size:1rem; font-weight:700; color:#ffffff; margin-bottom:0; position:relative; z-index:1; font-family:"Fira Code",monospace;}
+    .card p{display:none;}
+    .card .arrow{position:static; color:rgba(0,255,65,0.5); font-size:1rem; transition:all 0.3s; font-family:"Fira Code",monospace;}
+    .card .data-dots{display:none;}
+    .card .corner{width:4px;height:4px;}
+    .card .glow-ring{clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);}
+    .sig-wrapper img{max-height:100px; display:block; filter:drop-shadow(0 0 15px rgba(0,255,65,0.4)); transition:filter 0.5s,transform 0.5s;}
+    .status-bar{display:none;}
+    .boot-line{display:none;}
+    .add-btn{margin-top:1.5rem; padding:0.6rem 1.5rem; background:linear-gradient(135deg, rgba(0,255,65,0.8), #00ff41); color:#05050a; font-family:"Fira Code",monospace; font-size:0.8rem; font-weight:700; letter-spacing:2px; cursor:pointer; border:none; transition:all 0.25s; text-transform:uppercase; clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%); box-shadow:0 0 10px rgba(0,255,65,0.3);}
+    .card.ipirnet{clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);}
+    .card.ipirnet h2{font-size:0.9rem;letter-spacing:2px;}
+    .card.ipirnet .gold-pulse{clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);}
+    .eq{display:none;}
+}
+</style>
+</head>
+<body>
+
+<canvas id="matrixCanvas"></canvas>
+<div class="vignette"></div>
+<div class="cursor-glow" id="cursorGlow"></div>
+<div class="particles" id="particles"></div>
+
+<div class="container">
+    <div class="status-bar">
+        <span class="stat">SYS:<span class="val">ONLINE</span></span>
+        <span class="stat">NODES:<span class="val" id="nodeCount">7</span></span>
+        <span class="stat">SIGNAL:<span class="val blink">LIVE</span></span>
+        <span class="eq" id="eq"></span>
+    </div>
+
+    <div class="sig-wrapper" id="sigWrap">
+        <img src="/signature.png" alt="signature">
+        <div class="glitch-overlay" id="glitch"></div>
+    </div>
+    <div class="sig-line"></div>
+
+    <div class="boot-line" id="bootLine"></div>
+
+    <div class="grid">
+        <a href="/ayarestoPHP/" class="card">
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+            <span class="glow-ring"></span>
+            <div class="data-dots"><span></span><span></span><span></span></div>
+            <span class="tag">RESTAURANT</span>
+            <h2>Restorent</h2>
+            <p>PHP restaurant management system</p>
+            <span class="arrow">→</span>
+        </a>
+        <a href="/projrtZL/" class="card">
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+            <span class="glow-ring"></span>
+            <div class="data-dots"><span></span><span></span><span></span></div>
+            <span class="tag">FINANCE</span>
+            <h2>ProjrtZL</h2>
+            <p>PHP business and billing platform</p>
+            <span class="arrow">→</span>
+        </a>
+        <a href="/ihsan/" class="card">
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+            <span class="glow-ring"></span>
+            <div class="data-dots"><span></span><span></span><span></span></div>
+            <span class="tag">BEAUTY</span>
+            <h2>Beauty center</h2>
+            <p>Flask beauty center application</p>
+            <span class="arrow">→</span>
+        </a>
+        <a href="/traiteur/" class="card">
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+            <span class="glow-ring"></span>
+            <div class="data-dots"><span></span><span></span><span></span></div>
+            <span class="tag">CATERING</span>
+            <h2>Traiteur</h2>
+            <p>Flask event catering system</p>
+            <span class="arrow">→</span>
+        </a>
+        <a href="/khadija/" class="card">
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+            <span class="glow-ring"></span>
+            <div class="data-dots"><span></span><span></span><span></span></div>
+            <span class="tag">BAKERY</span>
+            <h2>Patisserie</h2>
+            <p>Flask bakery application</p>
+            <span class="arrow">→</span>
+        </a>
+        <a href="/pizzatime/" class="card">
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+            <span class="glow-ring"></span>
+            <div class="data-dots"><span></span><span></span><span></span></div>
+            <span class="tag">PIZZA</span>
+            <h2>PizzaTime</h2>
+            <p>Flask pizza ordering system</p>
+            <span class="arrow">→</span>
+        </a>
+        <a href="/othman-terrain/" class="card">
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+            <span class="glow-ring"></span>
+            <div class="data-dots"><span></span><span></span><span></span></div>
+            <span class="tag">SPORTS</span>
+            <h2>Field Management</h2>
+            <p>Flask sports terrain reservation</p>
+            <span class="arrow">→</span>
+        </a>
+        <a href="/terrain/" class="card">
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+            <span class="glow-ring"></span>
+            <div class="data-dots"><span></span><span></span><span></span></div>
+            <span class="tag">SPORTS</span>
+            <h2>KoraArena</h2>
+            <p>Flask terrain reservation</p>
+            <span class="arrow">→</span>
+        </a>
+        <a href="/hotel/" class="card">
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+            <span class="glow-ring"></span>
+            <div class="data-dots"><span></span><span></span><span></span></div>
+            <span class="tag">HOTEL</span>
+            <h2>Hotel Management</h2>
+            <p>Flask hotel reservation system</p>
+            <span class="arrow">→</span>
+        </a>
+        <a href="/ipirnet/" class="card ipirnet">
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+            <span class="gold-pulse"></span>
+            <div class="data-dots"><span></span><span></span><span></span></div>
+            <span class="tag">FLAGSHIP</span>
+            <h2>IPIRNET V7</h2>
+            <p>the ultimate boss project</p>
+            <span class="arrow">→</span>
+        </a>
+    </div>
+
+    <button id="addBtn" class="add-btn">+ ADD TARGET</button>
+
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal">
+            <h3>NEW TARGET</h3>
+            <input type="text" id="projName" placeholder="name">
+            <input type="text" id="projDesc" placeholder="description">
+            <input type="text" id="projTag" placeholder="tag (e.g. API)">
+            <input type="text" id="projUrl" placeholder="path (e.g. /myapp/)">
+            <div class="modal-buttons">
+                <button id="cancelBtn" class="cancel-btn">ABORT</button>
+                <button id="saveBtn" class="save-btn">DEPLOY</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button class="fab" id="fabBtn">
+    <span class="prompt">$</span>
+    <span>nav</span>
+    <span class="prompt-cursor"></span>
+</button>
+<div class="fab-menu" id="fabMenu"></div>
+
+<script>
+// cursor glow cyber reticle
+(function(){
+    var g=document.getElementById('cursorGlow');
+    g.innerHTML='<div class="glow-bg"></div><div class="r r1"></div><div class="r r2"></div><div class="r r3"></div><div class="r r4"></div><div class="dot"></div><div class="cx"></div>';
+    var els=g.querySelectorAll('.glow-bg,.r,.dot,.cx');
+    document.addEventListener('mousemove',function(e){
+        var z = window.innerWidth <= 768 ? 1 : 1.5;
+        for(var i=0;i<els.length;i++){
+            els[i].style.left=(e.clientX/z)+'px';
+            els[i].style.top=(e.clientY/z)+'px';
+        }
+        var p=document.createElement('div');p.className='cursor-particle';
+        p.style.left=(e.clientX/z)+'px';p.style.top=(e.clientY/z)+'px';
+        p.style.width=(2+Math.random()*3)+'px';p.style.height=p.style.width;
+        document.body.appendChild(p);
+        setTimeout(function(){if(p.parentNode)p.parentNode.removeChild(p);},600);
+    });
+})();
+
+// stars
+(function(){
+    for(var i=0;i<60;i++){
+        var s=document.createElement('div');s.className='star';
+        s.style.left=Math.random()*100+'%';
+        s.style.top=Math.random()*100+'%';
+        s.style.setProperty('--d',(2+Math.random()*4)+'s');
+        s.style.animationDelay=(Math.random()*5)+'s';
+        document.body.appendChild(s);
+    }
+})();
+
+// equalizer
+(function(){
+    var eq=document.getElementById('eq');
+    for(var i=0;i<8;i++){
+        var b=document.createElement('b');
+        b.style.setProperty('--h',(8+Math.random()*10)+'px');
+        b.style.setProperty('--d',(0.2+Math.random()*0.4)+'s');
+        b.style.animationDelay=(i*0.1)+'s';
+        eq.appendChild(b);
+    }
+})();
+
+// particles
+(function(){
+    var c=document.getElementById('particles');
+    for(var i=0;i<25;i++){
+        var p=document.createElement('div');
+        p.className='p '+(Math.random()>0.7?'d':'t');
+        p.style.left=Math.random()*100+'%';
+        p.style.animationDuration=(10+Math.random()*20)+'s';
+        p.style.animationDelay=(Math.random()*15)+'s';
+        p.style.setProperty('--dx',(Math.random()-0.5)*300);
+        p.style.width=p.style.height=(1.5+Math.random()*2.5)+'px';
+        c.appendChild(p);
+    }
+})();
+
+// boot typing
+(function(){
+    var el=document.getElementById('bootLine');
+    var msgs=[
+        'system initialized. ready for deployment.',
+        'all nodes online. awaiting command.',
+        'neural interface active. target acquired.',
+        'secure channel established. proceed.',
+        'quantum link synchronized. standby.',
+        'neural handshake complete. systems nominal.',
+    ];
+    var msg=msgs[Math.floor(Math.random()*msgs.length)];
+    var i=0;
+    function type(){
+        if(i<msg.length){
+            el.textContent+=msg[i];i++;
+            setTimeout(type,18+Math.random()*28);
+        }else{
+            el.innerHTML=msg+'<span class="cursor"></span>';
+        }
+    }
+    setTimeout(type,400);
+})();
+
+// auto glitch every 8s
+(function(){
+    var wrap=document.getElementById('sigWrap');
+    var glitch=document.getElementById('glitch');
+    function fireGlitch(){
+        glitch.classList.add('active');
+        var strips='';
+        for(var i=0;i<6;i++){
+            strips+='<div class="strip" style="top:'+(Math.random()*100)+'%;animation-duration:'+(0.04+Math.random()*0.08)+'s;animation-delay:'+(Math.random()*0.15)+'s"></div>';
+        }
+        glitch.innerHTML=strips;
+        setTimeout(function(){glitch.classList.remove('active');},400);
+    }
+    setInterval(fireGlitch,8000);
+    wrap.addEventListener('mouseenter',fireGlitch);
+})();
+
+var addBtn=document.getElementById('addBtn');
+var modalOverlay=document.getElementById('modalOverlay');
+var cancelBtn=document.getElementById('cancelBtn');
+var saveBtn=document.getElementById('saveBtn');
+var grid=document.querySelector('.grid');
+var nodeCount=document.getElementById('nodeCount');
+
+var countNodes=function(){
+    var n=document.querySelectorAll('.grid > .card').length;
+    nodeCount.textContent=n;
+};
+
+var loadCustom=function(){
+    var s=localStorage.getItem('customProjects');
+    if(s){JSON.parse(s).forEach(function(p){addCard(p.name,p.desc,p.tag,p.url,false);});countNodes();}
+};
+var saveCustom=function(n,d,t,u){
+    var s=localStorage.getItem('customProjects');var p=s?JSON.parse(s):[];
+    p.push({name:n,desc:d,tag:t,url:u});localStorage.setItem('customProjects',JSON.stringify(p));
+};
+var addCard=function(name,desc,tag,url,anim){
+    var c=document.createElement('a');c.href=url;c.className=anim?'card new-card':'card';
+    c.innerHTML='<span class="corner corner-tl"></span><span class="corner corner-tr"></span><span class="corner corner-bl"></span><span class="corner corner-br"></span><span class="glow-ring"></span><div class="data-dots"><span></span><span></span><span></span></div><span class="tag">'+(tag||'CUSTOM').toUpperCase()+'</span><h2>'+name+'</h2><p>'+desc+'</p><span class="arrow">→</span><div style="position:absolute;top:6px;right:12px;font-size:0.8rem;cursor:pointer;color:rgba(255,80,80,0.12);z-index:3;" onclick="event.preventDefault();event.stopPropagation();window.del(\''+name.replace(/'/g,"\\'")+'\')">x</div>';
+    grid.appendChild(c);countNodes();
+};
+window.del=function(n){
+    if(!confirm('Remove?'))return;
+    var s=localStorage.getItem('customProjects');
+    if(s){localStorage.setItem('customProjects',JSON.stringify(JSON.parse(s).filter(function(p){return p.name!==n;})));location.reload();}
+};
+loadCustom();
+addBtn.addEventListener('click',function(){
+    modalOverlay.style.display='flex';setTimeout(function(){modalOverlay.classList.add('show');},10);
+});
+var closeM=function(){modalOverlay.classList.remove('show');setTimeout(function(){modalOverlay.style.display='none';},300);};
+cancelBtn.addEventListener('click',closeM);
+saveBtn.addEventListener('click',function(){
+    var n=document.getElementById('projName').value||'New Target';
+    var d=document.getElementById('projDesc').value||'custom';
+    var t=document.getElementById('projTag').value||'CUSTOM';
+    var u=document.getElementById('projUrl').value||'#';
+    addCard(n,d,t,u,true);saveCustom(n,d,t,u);
+    ['projName','projDesc','projTag','projUrl'].forEach(function(id){document.getElementById(id).value='';});
+    closeM();
+});
+
+var projects=[
+    {l:'Restorent',u:'/ayarestoPHP/'},{l:'ProjrtZL',u:'/projrtZL/'},{l:'Beauty center',u:'/ihsan/'},
+    {l:'Traiteur',u:'/traiteur/'},{l:'Patisserie',u:'/khadija/'},{l:'PizzaTime',u:'/pizzatime/'},
+    {l:'Hotel',u:'/hotel/'},{l:'Field Management',u:'/othman-terrain/'},{l:'KoraArena',u:'/terrain/'},
+    {l:'IPIRNET V7',u:'/ipirnet/'},
+];
+var fb=document.getElementById('fabBtn'),fm=document.getElementById('fabMenu');
+var bf=function(){
+    var a=projects.slice();var s=localStorage.getItem('customProjects');
+    if(s){JSON.parse(s).forEach(function(p){a.push({l:p.name,u:p.url});});}
+    fm.innerHTML=a.map(function(p){return '<a href="'+p.u+'" class="fab-item">'+p.l+'</a>';}).join('');
+};
+fb.addEventListener('click',function(e){e.stopPropagation();fb.classList.toggle('open');fm.classList.toggle('open');if(fm.classList.contains('open'))bf();});
+document.addEventListener('click',function(e){if(!fb.contains(e.target)&&!fm.contains(e.target)){fb.classList.remove('open');fm.classList.remove('open');}});
+bf();countNodes();
+
+// matrix rain
+(function(){
+    var c=document.getElementById('matrixCanvas');
+    var ctx=c.getContext('2d');
+    c.width=window.innerWidth;
+    c.height=window.innerHeight;
+    var chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*]*'.split('');
+    var fontSize=14;
+    var columns=c.width/fontSize;
+    var drops=[];
+    for(var i=0;i<columns;i++)drops[i]=1;
+    function draw(){
+        ctx.fillStyle='rgba(5, 5, 10, 0.05)';
+        ctx.fillRect(0,0,c.width,c.height);
+        ctx.fillStyle='#00ff41';
+        ctx.font=fontSize+'px monospace';
+        for(var i=0;i<drops.length;i++){
+            var text=chars[Math.floor(Math.random()*chars.length)];
+            ctx.fillText(text,i*fontSize,drops[i]*fontSize);
+            if(drops[i]*fontSize>c.height&&Math.random()>0.975)drops[i]=0;
+            drops[i]++;
+        }
+    }
+    setInterval(draw,35);
+    window.addEventListener('resize',function(){
+        c.width=window.innerWidth;
+        c.height=window.innerHeight;
+        columns=c.width/fontSize;
+        var newDrops=[];
+        for(var i=0;i<columns;i++)newDrops[i]=drops[i]||1;
+        drops=newDrops;
+    });
+})();
+</script>
+</body>
+</html>

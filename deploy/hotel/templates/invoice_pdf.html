@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: a4 portrait;
+            @frame content_frame {
+                left: 50pt; width: 492pt; top: 50pt; height: 742pt;
+            }
+        }
+        body { font-family: Helvetica, Arial, sans-serif; color: #333; line-height: 1.4; }
+        .header { text-align: center; border-bottom: 2px solid #2c3e50; padding-bottom: 20px; margin-bottom: 30px; }
+        .hotel-name { font-size: 24pt; font-weight: bold; color: #2c3e50; margin-bottom: 5pt; }
+        .invoice-title { font-size: 18pt; margin-top: 10pt; font-weight: bold; }
+        
+        .details-container { margin-bottom: 30px; width: 100%; }
+        .details-table { width: 100%; }
+        .details-table td { padding: 5pt 0; vertical-align: top; }
+        .label { font-weight: bold; width: 100pt; }
+        
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .items-table th { background-color: #f2f2f2; border-bottom: 1pt solid #ccc; padding: 8pt; text-align: left; }
+        .items-table td { padding: 8pt; border-bottom: 0.5pt solid #eee; }
+        
+        .totals-section { float: right; width: 200pt; margin-top: 20pt; }
+        .total-row { display: block; text-align: right; padding: 5pt 0; }
+        .grand-total { font-size: 14pt; font-weight: bold; border-top: 1pt solid #2c3e50; padding-top: 10pt; margin-top: 10pt; }
+        
+        .footer { position: absolute; bottom: 0; width: 100%; text-align: center; font-size: 9pt; color: #7f8c8d; border-top: 0.5pt solid #eee; padding-top: 10pt; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="hotel-name">HOTEL LUXE</div>
+        <div>123 Avenue Mohamed V, Casablanca, Maroc</div>
+        <div>Tél: +212 5 22 00 00 00 | Email: contact@hotelluxe.ma</div>
+        <div class="invoice-title">FACTURE N° {{ res.id }}</div>
+    </div>
+
+    <div class="details-container">
+        <table class="details-table">
+            <tr>
+                <td class="label">Client :</td>
+                <td>{{ res.client.last_name }} {{ res.client.first_name }} (CIN: {{ res.client.cin }})</td>
+                <td class="label" style="text-align: right;">Date :</td>
+                <td style="text-align: right;">{{ res.actual_check_out.strftime('%d/%m/%Y') if res.actual_check_out else date.today().strftime('%d/%m/%Y') }}</td>
+            </tr>
+            <tr>
+                <td class="label">Chambre :</td>
+                <td>{{ res.room.number }} ({{ res.room.type }})</td>
+                <td class="label" style="text-align: right;">Période :</td>
+                <td style="text-align: right;">Du {{ res.arrival_date }} au {{ res.departure_date }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th style="text-align: right;">Montant</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Hébergement (Séjour complet)</td>
+                <td style="text-align: right;">{{ res.total_amount - res.extra_charges }} DH</td>
+            </tr>
+            {% for cs in res.consumed_services %}
+            <tr>
+                <td>{{ cs.service.name }} (x{{ cs.quantity }})</td>
+                <td style="text-align: right;">{{ cs.service.price * cs.quantity }} DH</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="totals-section">
+        <div class="total-row"><strong>Sous-total :</strong> {{ res.total_amount }} DH</div>
+        <div class="total-row"><strong>Déjà payé :</strong> {{ total_paid }} DH</div>
+        <div class="total-row grand-total"><strong>NET À PAYER :</strong> {{ res.total_amount - total_paid }} DH</div>
+    </div>
+
+    <div class="footer">
+        Merci de votre visite à l'Hôtel Luxe. Nous espérons vous revoir bientôt !
+    </div>
+</body>
+</html>

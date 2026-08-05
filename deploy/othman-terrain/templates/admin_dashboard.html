@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header fade-in btn-print-hide">
+    <h1><i class="fas fa-chart-line"></i> Dashboard Administrateur</h1>
+    <p>Surveillez vos terrains et réservations en un coup d'œil.</p>
+    <div style="margin-top: 1.5rem;">
+        <a href="{{ url_for('main.manage_players') }}" class="btn btn-accent">
+            <i class="fas fa-users-cog"></i> Gérer les Joueurs
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Overview -->
+<div class="stats-grid fade-in btn-print-hide">
+    <div class="card chart-card">
+        <h3><i class="fas fa-futbol"></i> Popularité des Terrains</h3>
+        <div class="chart-container">
+            <canvas id="terrainCountsChart"></canvas>
+        </div>
+    </div>
+    <div class="card chart-card">
+        <h3><i class="fas fa-money-bill-trend-up"></i> Revenus (MAD)</h3>
+        <div class="chart-container">
+            <canvas id="terrainRevenueChart"></canvas>
+        </div>
+    </div>
+    <div class="card chart-card">
+        <h3><i class="fas fa-users"></i> Top Joueurs</h3>
+        <div class="chart-container">
+            <canvas id="playerActivityChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="card fade-in">
+    <h2><i class="fas fa-tools"></i> Gérer les Terrains</h2>
+    <form action="{{ url_for('main.add_terrain') }}" method="POST" class="inline-form btn-print-hide">
+        <div class="form-group flex-2">
+            <label><i class="fas fa-signature"></i> Nom du Terrain</label>
+            <input type="text" name="name" placeholder="ex. Terrain de Foot A" required>
+        </div>
+        <div class="form-group flex-1">
+            <label><i class="fas fa-money-bill-wave"></i> Prix / Heure (MAD)</label>
+            <input type="number" name="price" value="200" required>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Ajouter
+        </button>
+    </form>
+    
+    <div class="table-responsive" style="margin-top: 2rem;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Prix / Heure</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for terrain in terrains %}
+                <tr>
+                    <td><strong>{{ terrain.name }}</strong></td>
+                    <td><span class="price-tag">{{ terrain.price_per_hour }} MAD</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card fade-in">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="margin-bottom: 0;"><i class="fas fa-list-ul"></i> Réservations Récentes</h2>
+        <a href="{{ url_for('main.reservations') }}" class="btn btn-accent btn-sm">
+            <i class="fas fa-arrow-right"></i> Voir tout
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Joueur</th>
+                    <th>Terrain</th>
+                    <th>Date</th>
+                    <th>Heure</th>
+                    <th>Prix Total</th>
+                    <th>Statut</th>
+                    <th class="btn-print-hide">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in reservations %}
+                <tr>
+                    <td><i class="fas fa-user-circle"></i> {{ res.player.username }}</td>
+                    <td>{{ res.terrain.name }}</td>
+                    <td>{{ res.date }}</td>
+                    <td>{{ res.start_time.strftime('%H:%M') }} ({{ res.duration }}h)</td>
+                    <td><strong class="total-price">{{ res.total_price }} MAD</strong></td>
+                    <td>
+                        {% if res.payment_status == 'Paid' %}
+                            <span class="status-paid"><i class="fas fa-check-circle"></i> Payé</span>
+                        {% else %}
+                            <span class="status-pending"><i class="fas fa-clock"></i> En attente</span>
+                        {% endif %}
+                    </td>
+                    <td class="btn-print-hide">
+                        {% if res.payment_status != 'Paid' %}
+                            <a href="{{ url_for('main.mark_paid', res_id=res.id) }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-money-bill-wave"></i> Marquer Payé
+                            </a>
+                        {% else %}
+                            <span class="text-success"><i class="fas fa-check"></i> Terminé</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    Chart.defaults.color = '#e0e0e0';
+    Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.05)'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    };
+
+    // Terrain Counts Chart
+    new Chart(document.getElementById('terrainCountsChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ stats.terrain_names | tojson }},
+            datasets: [{
+                label: 'Réservations',
+                data: {{ stats.terrain_counts | tojson }},
+                backgroundColor: 'rgba(78, 115, 223, 0.6)',
+                borderColor: 'rgba(78, 115, 223, 1)',
+                borderWidth: 1,
+                borderRadius: 5
+            }]
+        },
+        options: chartOptions
+    });
+
+    // Terrain Revenue Chart
+    new Chart(document.getElementById('terrainRevenueChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ stats.terrain_names | tojson }},
+            datasets: [{
+                label: 'Revenus (MAD)',
+                data: {{ stats.terrain_revenues | tojson }},
+                backgroundColor: 'rgba(28, 200, 138, 0.6)',
+                borderColor: 'rgba(28, 200, 138, 1)',
+                borderWidth: 1,
+                borderRadius: 5
+            }]
+        },
+        options: chartOptions
+    });
+
+    // Player Activity Chart
+    new Chart(document.getElementById('playerActivityChart'), {
+        type: 'pie',
+        data: {
+            labels: {{ stats.player_names | tojson }},
+            datasets: [{
+                data: {{ stats.player_counts | tojson }},
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<style>
+    .dashboard-header {
+        margin-bottom: 3rem;
+        text-align: center;
+    }
+    .status-paid {
+        color: #1cc88a;
+        background: rgba(28, 200, 138, 0.1);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(28, 200, 138, 0.2);
+    }
+    .status-pending {
+        color: #f6c23e;
+        background: rgba(246, 194, 62, 0.1);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(246, 194, 62, 0.2);
+    }
+    .text-success {
+        color: #1cc88a;
+        font-size: 0.85rem;
+    }
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+    .dashboard-header p {
+        color: rgba(255,255,255,0.7);
+        font-size: 1.1rem;
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .chart-card {
+        padding: 1.5rem;
+        min-height: 380px;
+    }
+    .chart-card h3 {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 0.8rem;
+    }
+    .chart-container {
+        position: relative;
+        height: 250px;
+        width: 100%;
+    }
+    .inline-form {
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-end;
+        flex-wrap: wrap;
+    }
+    .form-group {
+        margin-bottom: 0 !important;
+    }
+    .flex-2 { flex: 2; min-width: 250px; }
+    .flex-1 { flex: 1; min-width: 150px; }
+</style>
+{% endblock %}

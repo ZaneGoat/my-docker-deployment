@@ -1,0 +1,2 @@
+deploy/Database[[:space:]]php/mysql/data/ibdata1 filter=lfs diff=lfs merge=lfs -text
+deploy/Database[[:space:]]php/mysql/data-old/ibdata1 filter=lfs diff=lfs merge=lfs -text

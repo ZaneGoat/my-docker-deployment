@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Facture #{{ res.id }}</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; color: #333; }
+        .invoice-box { max-width: 800px; margin: auto; border: 1px solid #eee; padding: 30px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); }
+        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+        .details { margin-bottom: 40px; }
+        table { width: 100%; text-align: left; border-collapse: collapse; }
+        th { background: #f9f9f9; padding: 10px; border-bottom: 1px solid #ddd; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+        .total { text-align: right; margin-top: 30px; font-size: 1.2rem; font-weight: bold; }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="invoice-box">
+        <div class="header">
+            <div>
+                <h1>HOTEL LUXE</h1>
+                <p>123 Avenue Mohamed V, Casablanca</p>
+            </div>
+            <div>
+                <h2>FACTURE</h2>
+                <p>N° : #{{ res.id }}</p>
+                <p>Date : {{ res.actual_check_out.strftime('%Y-%m-%d') if res.actual_check_out else '' }}</p>
+            </div>
+        </div>
+
+        <div class="details">
+            <p><strong>Client :</strong> {{ res.client.last_name }} {{ res.client.first_name }} ({{ res.client.cin }})</p>
+            <p><strong>Chambre :</strong> {{ res.room.number }} ({{ res.room.type }})</p>
+            <p><strong>Séjour :</strong> du {{ res.arrival_date }} au {{ res.departure_date }}</p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Montant</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Hébergement (Séjour complet)</td>
+                    <td>{{ res.total_amount - res.extra_charges }} DH</td>
+                </tr>
+                {% for cs in res.consumed_services %}
+                <tr>
+                    <td>{{ cs.service.name }} (x{{ cs.quantity }})</td>
+                    <td>{{ cs.service.price * cs.quantity }} DH</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="total">
+            Total à payer : {{ res.total_amount }} DH
+        </div>
+
+        <div style="margin-top: 50px; text-align: center;" class="no-print">
+            <button onclick="window.print()" style="padding: 10px 20px; cursor: pointer;">Imprimer la Facture</button>
+        </div>
+    </div>
+</body>
+</html>

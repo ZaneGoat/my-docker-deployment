@@ -1,0 +1,16 @@
+{
+  "name": "ZANE DEPLOY",
+  "short_name": "ZANE",
+  "description": "Zane deployment portal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05050a",
+  "theme_color": "#05050a",
+  "icons": [
+    {
+      "src": "/signature.png",
+      "sizes": "any",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Base Clients - Admin{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 2rem;">👤 Base de Données Clients</h1>
+
+<div class="card" style="padding: 0; overflow: hidden; border: 2px solid rgba(255,255,255,0.1);">
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+            <tr style="background: rgba(255,255,255,0.05); border-bottom: 2px solid var(--accent-color);">
+                <th style="padding: 1.2rem;">Nom complet</th>
+                <th style="padding: 1.2rem;">Téléphone</th>
+                <th style="padding: 1.2rem;">Dernière Adresse</th>
+                <th style="padding: 1.2rem;">Commandes</th>
+                <th style="padding: 1.2rem;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in clients %}
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                <td style="padding: 1.2rem; font-weight: bold;">{{ client.full_name }}</td>
+                <td style="padding: 1.2rem;">
+                    <a href="tel:{{ client.phone }}" style="color: var(--accent-color); text-decoration: none; font-weight: bold;">📞 {{ client.phone }}</a>
+                </td>
+                <td style="padding: 1.2rem;">{{ client.address if client.address else 'N/A' }}</td>
+                <td style="padding: 1.2rem;">
+                    <span style="background: var(--secondary-color); padding: 0.3rem 0.6rem; border-radius: 8px; font-size: 0.85rem;">{{ client.orders|length }} commande(s)</span>
+                </td>
+                <td style="padding: 1.2rem;">
+                    <a href="{{ url_for('admin_orders') }}?client_id={{ client.id }}">
+                        <button style="padding: 0.5rem 1rem; font-size: 0.8rem;">Voir Historique</button>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

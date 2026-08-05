@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Commande Réussie - Pizzeria{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 3rem auto; text-align: center; border: 4px solid var(--success);">
+    <h1 style="color: var(--success); font-size: 3rem;">✓ COMMANDE REÇUE !</h1>
+    <h2 style="margin: 2rem 0; color: white; font-size: 2.2rem; line-height: 1.4;">
+        Nous vous appellerons bientôt pour confirmer votre commande.
+    </h2>
+    
+    <div style="background: rgba(255,255,255,0.05); padding: 2rem; border-radius: 20px; text-align: left; margin-top: 2rem;">
+        <h3>Détails de votre commande #{{ order.id }}</h3>
+        <p><strong>Client:</strong> {{ order.client.full_name }}</p>
+        <p><strong>Téléphone:</strong> {{ order.client.phone }}</p>
+        <p><strong>Type:</strong> {{ 'Livraison' if order.order_type == 'Delivery' else 'À emporter' }}</p>
+        {% if order.order_type == 'Delivery' %}
+        <p><strong>Adresse:</strong> {{ order.delivery_info.address }} ({{ order.delivery_info.neighborhood }})</p>
+        {% endif %}
+        <p><strong>Total:</strong> <span style="color: var(--primary-color); font-weight: 800; font-size: 1.5rem;">{{ order.total_price }} DH</span></p>
+    </div>
+
+    <a href="{{ url_for('index') }}">
+        <button style="margin-top: 2rem; padding: 1.2rem 3rem; font-size: 1.1rem;">Retour au Menu</button>
+    </a>
+</div>
+{% endblock %}

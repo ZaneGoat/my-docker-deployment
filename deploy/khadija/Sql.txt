@@ -1,0 +1,130 @@
+Base de données : Gestion de caisse de pâtisserie
+Table Produit
+* ﻿﻿id_produit (PK)
+* ﻿﻿nom_produit
+* ﻿﻿prix_vente
+* ﻿﻿disponibilite
+Table Vente
+* ﻿﻿id_vente (PK)
+* ﻿﻿date_vente
+* ﻿﻿total_vente
+* ﻿﻿mode_paiement
+Table Ligne_Vente
+* ﻿﻿id_ligne (PK)
+* ﻿﻿id_vente (FK)
+* ﻿﻿id_produit (FK)
+
+Table Encaissement
+* ﻿﻿id_encaissement (PK)
+* ﻿﻿date_encaissement
+* ﻿﻿montant
+* ﻿﻿origine
+Table Decaissement
+* ﻿﻿id_decaissement (PK)
+* ﻿﻿date_decaissement
+* ﻿﻿montant
+* ﻿﻿motif
+* ﻿﻿beneficiaire
+Table Caisse
+* ﻿﻿id_caisse (PK)
+* ﻿﻿date
+* ﻿﻿solde_initial
+
+
+Table Rapport_Journalier
+* ﻿﻿id_rapport (PK)
+* ﻿﻿date
+* ﻿﻿total_ventes
+* ﻿﻿total_encaissements
+* ﻿﻿total_decaissements
+* ﻿﻿solde_final
+
+5 Fonctionnalités principales
+* ﻿﻿Ajouter et consulter les produits
+* ﻿﻿Enregistrer une vente
+* ﻿﻿Calculer automatiquement le total
+* ﻿﻿Gérer le solde initial et final de la caisse
+* ﻿﻿Enregistrer les dépenses
+* ﻿﻿Générer un rapport journalier
+6 Données à gérer
+* ﻿﻿Produits
+* ﻿﻿Ventes
+* ﻿﻿Encaissements
+* ﻿﻿Décaissements
+* ﻿﻿Caisse
+* ﻿﻿Rapports journaliers
+
+Description générale du système
+Le système permet :
+* ﻿﻿L'enregistrement des ventes
+* ﻿﻿La gestion des produits
+* ﻿﻿Le suivi de la caisse
+* ﻿﻿La gestion des encaissements et décaissements
+* ﻿﻿La consultation des rapports journaliers
+Utilisateurs du système
+* ﻿﻿Caissier :
+* ﻿﻿Enregistrer les ventes
+* ﻿﻿Gérer la caisse
+* ﻿﻿Gérant :
+* ﻿﻿Consulter les rapports
+* ﻿﻿Contrôler la caisse
+
+7 Contraintes du système
+* ﻿﻿Interface simple et facile à utiliser
+* ﻿﻿Rapidité d'exécution
+* ﻿﻿Fiabilité des données
+* ﻿﻿Sécurité des informations
+8 Environnement de travail
+(exemple)
+* ﻿﻿Application desktop ou web
+* ﻿﻿Base de données relationnelle
+
+Cahier de charge
+Gestion de caisse de pâtisserie
+1 Présentation du projet
+Ce projet consiste à réaliser une application de gestion de caisse pour une pâtisserie.
+Elle permet de gérer les ventes, les encaissements, les décaissements et le suivi quotidien de la caisse.
+2
+Objectifs du projet
+* ﻿﻿Gérer les ventes de la pâtisserie
+* ﻿﻿Suivre les entrées et sorties d'argent
+* ﻿﻿Connaître le solde de la caisse à tout moment
+* ﻿﻿Réduire les erreurs de calcul
+* ﻿﻿Faciliter le travail du caissier et du gérant
+
+Interface Dépenses
+* ﻿﻿Date
+* ﻿﻿Montant
+* ﻿﻿Motif
+* ﻿﻿Bénéficiaire
+* ﻿﻿Bouton enregistrer
+Interface Rapport journalier
+* ﻿﻿Date
+* ﻿﻿Total des ventes
+* ﻿﻿Total encaissements 
+
+2 Interface Gestion des ventes
+* ﻿﻿Date de la vente
+* ﻿﻿Liste des produits
+* ﻿﻿Quantité
+* ﻿﻿Prix unitaire
+* ﻿﻿Total automatique
+* ﻿﻿Mode de paiement
+* ﻿﻿Bouton valider la vente
+Interface Produits
+* ﻿﻿Code produit
+* ﻿﻿Nom du produit
+* ﻿﻿Prix de vente
+* ﻿﻿Disponibilité
+* ﻿﻿Boutons : ajouter / modifier / supprimer
+
+• Interfaces - Gestion de caisse de pâtisserie
+1
+Interface d'accueil
+* ﻿﻿Logo de la pâtisserie
+* ﻿﻿Menu principal
+* ﻿﻿Gestion des ventes
+* ﻿﻿Gestion de la caisse
+* ﻿﻿Gestion des dépenses
+* ﻿﻿Rapports
+* * ﻿﻿Bouton quitter

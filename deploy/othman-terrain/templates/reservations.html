@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header fade-in">
+    <h1><i class="fas fa-calendar-alt"></i> {{ 'Toutes les Réservations' if current_user.role == 'admin' else 'Mes Réservations' }}</h1>
+    <p>Gérez les réservations et consultez l'historique.</p>
+</div>
+
+<!-- Summary Stats -->
+<div class="stats-grid fade-in">
+    <div class="card mini-card">
+        <div class="mini-card-icon" style="background: rgba(78, 115, 223, 0.2); color: #4e73df;">
+            <i class="fa-solid fa-calendar-check"></i>
+        </div>
+        <div class="mini-card-info">
+            <h3>{{ reservations|length }}</h3>
+            <p>Total Réservations</p>
+        </div>
+    </div>
+    <div class="card mini-card">
+        {% set pending_count = reservations|selectattr('payment_status', 'equalto', 'Pending')|list|length %}
+        <div class="mini-card-icon" style="background: rgba(246, 194, 62, 0.2); color: #f6c23e;">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <div class="mini-card-info">
+            <h3>{{ pending_count }}</h3>
+            <p>En Attente</p>
+        </div>
+    </div>
+    <div class="card mini-card">
+        {% set total_val = reservations|sum(attribute='total_price') %}
+        <div class="mini-card-icon" style="background: rgba(28, 200, 138, 0.2); color: #1cc88a;">
+            <i class="fa-solid fa-coins"></i>
+        </div>
+        <div class="mini-card-info">
+            <h3>{{ "%.2f"|format(total_val) }} MAD</h3>
+            <p>Valeur Totale</p>
+        </div>
+    </div>
+</div>
+
+<div class="card fade-in btn-print-hide">
+    <form action="{{ url_for('main.reservations') }}" method="GET" class="filter-form">
+        <div class="form-group">
+            <label><i class="fas fa-search"></i> Recherche</label>
+            <input type="text" name="search" placeholder="Nom, Terrain..." value="{{ request.args.get('search', '') }}">
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-filter"></i> Statut</label>
+            <select name="status">
+                <option value="">Tous les statuts</option>
+                <option value="Pending" {{ 'selected' if request.args.get('status') == 'Pending' }}>En attente</option>
+                <option value="Paid" {{ 'selected' if request.args.get('status') == 'Paid' }}>Payé</option>
+            </select>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-filter"></i> Filtrer
+            </button>
+            <a href="{{ url_for('main.reservations') }}" class="btn btn-accent">
+                <i class="fas fa-redo"></i> Réinitialiser
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="card fade-in">
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    {% if current_user.role == 'admin' %}
+                    <th>Joueur</th>
+                    {% endif %}
+                    <th>Terrain</th>
+                    <th>Date</th>
+                    <th>Heure</th>
+                    <th>Prix</th>
+                    <th>Statut</th>
+                    <th class="btn-print-hide">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in reservations %}
+                <tr>
+                    {% if current_user.role == 'admin' %}
+                    <td><i class="fas fa-user-circle"></i> {{ res.player.username }}</td>
+                    {% endif %}
+                    <td>{{ res.terrain.name }}</td>
+                    <td><i class="far fa-calendar-alt"></i> {{ res.date }}</td>
+                    <td><i class="far fa-clock"></i> {{ res.start_time.strftime('%H:%M') }} ({{ res.duration }}h)</td>
+                    <td><strong class="total-price">{{ res.total_price }} MAD</strong></td>
+                    <td>
+                        {% if res.payment_status == 'Paid' %}
+                            <span class="status-paid"><i class="fas fa-check-circle"></i> Payé</span>
+                        {% else %}
+                            <span class="status-pending"><i class="fas fa-clock"></i> En attente</span>
+                        {% endif %}
+                    </td>
+                    <td class="btn-print-hide">
+                        <div class="action-buttons">
+                            <a href="{{ url_for('main.receipt', res_id=res.id) }}" class="btn btn-accent btn-sm" title="Imprimer le Reçu">
+                                <i class="fas fa-print"></i>
+                            </a>
+                            
+                            {% if current_user.role == 'admin' and res.payment_status != 'Paid' %}
+                            <a href="{{ url_for('main.mark_paid', res_id=res.id) }}" class="btn btn-primary btn-sm" title="Valider le Paiement">
+                                <i class="fas fa-check-double"></i>
+                            </a>
+                            {% endif %}
+                            
+                            {% if current_user.role == 'admin' or (res.user_id == current_user.id and res.payment_status == 'Pending') %}
+                            <a href="{{ url_for('main.cancel_reservation', res_id=res.id) }}" class="btn btn-danger btn-sm" title="Annuler la Réservation" onclick="return confirm('Êtes-vous sûr de vouloir annuler cette réservation ?')">
+                                <i class="fas fa-calendar-times"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="{{ '7' if current_user.role == 'admin' else '6' }}" style="text-align: center; padding: 2rem;">
+                        <i class="fas fa-info-circle"></i> Aucune réservation trouvée.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .filter-form {
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-end;
+        flex-wrap: wrap;
+    }
+    .filter-form .form-group {
+        flex: 1;
+        min-width: 200px;
+        margin-bottom: 0;
+    }
+    .filter-form .form-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .btn-danger {
+        background: rgba(231, 74, 59, 0.2) !important;
+        color: #e74a3b !important;
+        border: 1px solid rgba(231, 74, 59, 0.3) !important;
+    }
+    .btn-danger:hover {
+        background: #e74a3b !important;
+        color: white !important;
+    }
+    .status-paid {
+        color: #1cc88a;
+        background: rgba(28, 200, 138, 0.1);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(28, 200, 138, 0.2);
+    }
+    .status-pending {
+        color: #f6c23e;
+        background: rgba(246, 194, 62, 0.1);
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(246, 194, 62, 0.2);
+    }
+</style>
+{% endblock %}

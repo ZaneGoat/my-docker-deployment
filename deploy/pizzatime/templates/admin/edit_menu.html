@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier l'Article - Admin{% endblock %}
+
+{% block content %}
+<div class="edit-container" style="max-width: 800px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+        <h1 style="margin: 0;">✏️ Modifier l'Article</h1>
+        <a href="{{ url_for('admin_menu') }}" style="text-decoration: none;">
+            <button type="button" style="background: var(--secondary-color); font-size: 0.8rem;">RETOUR AU MENU</button>
+        </a>
+    </div>
+
+    <div class="card" style="border-top: 4px solid var(--accent-color); padding: 2rem;">
+        <form method="POST" enctype="multipart/form-data" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Nom de l'article</label>
+                <input type="text" name="name" value="{{ pizza.name }}" required style="background: rgba(255,255,255,0.03); font-size: 1.1rem; font-weight: bold;">
+            </div>
+
+            <div class="form-group">
+                <label>Catégorie</label>
+                <select name="category" required style="background: rgba(255,255,255,0.03); color: white;">
+                    <option value="Pizza" {% if pizza.category == 'Pizza' %}selected{% endif %}>🍕 Pizza</option>
+                    <option value="Top Offre" {% if pizza.category == 'Top Offre' %}selected{% endif %}>🔥 Top Offre</option>
+                    <option value="Dessert" {% if pizza.category == 'Dessert' %}selected{% endif %}>🍰 Dessert</option>
+                    <option value="Boisson" {% if pizza.category == 'Boisson' %}selected{% endif %}>🥤 Boisson</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Prix (DH)</label>
+                <input type="number" step="0.01" name="price" value="{{ pizza.base_price }}" required style="background: rgba(255,255,255,0.03); color: var(--primary-color); font-weight: bold;">
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Description / Ingrédients</label>
+                <textarea name="description" rows="3" style="background: rgba(255,255,255,0.03);">{{ pizza.description }}</textarea>
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Photo de l'article</label>
+                <div style="display: flex; align-items: center; gap: 2rem; background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
+                    {% if pizza.photo_url %}
+                    <img src="{{ url_for('static', filename='img/' + pizza.photo_url) }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px; border: 2px solid var(--primary-color);">
+                    {% else %}
+                    <div style="width: 100px; height: 100px; background: #222; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🖼️</div>
+                    {% endif %}
+                    <div style="flex-grow: 1;">
+                        <p style="margin: 0 0 0.5rem 0; font-size: 0.7rem; color: #777;">MODIFIER L'IMAGE :</p>
+                        <input type="file" name="photo" accept="image/*">
+                    </div>
+                </div>
+            </div>
+
+            <div style="grid-column: span 2; margin-top: 1rem;">
+                <button type="submit" style="width: 100%; padding: 1.2rem; font-weight: 800; letter-spacing: 1px;">💾 ENREGISTRER LES MODIFICATIONS</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-group label { display: block; margin-bottom: 0.6rem; font-size: 0.75rem; color: #888; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-group input, .form-group select, .form-group textarea { 
+    width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); color: white; transition: 0.3s;
+}
+.form-group input:focus { border-color: var(--primary-color); outline: none; background: rgba(255,255,255,0.06); }
+</style>
+{% endblock %}
+

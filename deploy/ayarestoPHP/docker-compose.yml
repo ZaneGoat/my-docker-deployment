@@ -1,0 +1,9 @@
+
+services:
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok-tunnel
+    restart: unless-stopped
+    command: http 172.27.224.1:80
+    environment:
+      - NGROK_AUTHTOKEN=3GZ9PmOUboxT3EtYninw5KqEvhl_4nwzrVY56tz8YyaHUu7Zb
